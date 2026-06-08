@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Preview — Direção "Dossiê" · ISO SGI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    /* Paleta "Dossiê" — papel quente + tinta + verde-pinho institucional */
+    --paper:      #F4F1EA;
+    --paper-2:    #EFEBE1;
+    --panel:      #FBF9F4;
+    --ink:        #16140F;
+    --ink-2:      #4A453B;
+    --ink-3:      #8A8474;
+    --line:       #DBD5C7;
+    --line-2:     #C9C2B0;
+    --pine:       #1F3D2B;  /* institucional */
+    --pine-2:     #2E5A40;
+    --sage:       #6E8B5E;
+    --amber:      #C25A1C;  /* sinal: atraso / crítico */
+    --amber-tint: #F0E2D2;
+    --radius:     2px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body { height: 100%; }
+
+  body {
+    font-family: "Hanken Grotesk", system-ui, sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    font-size: 14px;
+    line-height: 1.5;
+    /* grão sutil de papel */
+    background-image:
+      radial-gradient(rgba(22,20,15,0.018) 1px, transparent 1px);
+    background-size: 3px 3px;
+  }
+
+  /* ----- molde da aplicação ----- */
+  .app { display: flex; min-height: 100vh; }
+
+  /* ===== Sidebar: índice de dossiê ===== */
+  .side {
+    width: 248px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--line-2);
+    background: var(--paper-2);
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+  }
+  .brand {
+    padding: 26px 24px 22px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .brand .seal {
+    width: 38px; height: 38px;
+    border: 1.5px solid var(--pine);
+    border-radius: 50%;
+    display: grid; place-items: center;
+    color: var(--pine);
+    font-family: "IBM Plex Mono", monospace;
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+  }
+  .brand .wm { font-family: "Fraunces", serif; font-weight: 600; font-size: 17px; letter-spacing: -0.2px; line-height: 1; }
+  .brand .sub { font-family: "IBM Plex Mono", monospace; font-size: 10px; color: var(--ink-3); letter-spacing: 1px; text-transform: uppercase; margin-top: 4px; }
+
+  nav { padding: 14px 12px; flex: 1; }
+  .nav-label { font-family: "IBM Plex Mono", monospace; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--ink-3); padding: 6px 12px 10px; }
+  .nav-item {
+    display: flex; align-items: baseline; gap: 12px;
+    padding: 9px 12px;
+    color: var(--ink-2);
+    text-decoration: none;
+    border-radius: var(--radius);
+    transition: background .15s, color .15s;
+    position: relative;
+  }
+  .nav-item .num { font-family: "IBM Plex Mono", monospace; font-size: 11px; color: var(--ink-3); width: 18px; }
+  .nav-item .lbl { font-weight: 500; font-size: 13.5px; }
+  .nav-item:hover { background: rgba(31,61,43,0.05); color: var(--ink); }
+  .nav-item.active { background: var(--pine); color: var(--paper); }
+  .nav-item.active .num { color: rgba(244,241,234,0.6); }
+  .nav-item.active::before {
+    content: ""; position: absolute; left: 0; top: 6px; bottom: 6px; width: 3px;
+    background: var(--amber);
+  }
+
+  .side-foot { border-top: 1px solid var(--line); padding: 16px 20px; }
+  .side-foot .org { font-weight: 600; font-size: 13px; }
+  .side-foot .ver { font-family: "IBM Plex Mono", monospace; font-size: 10.5px; color: var(--ink-3); margin-top: 3px; letter-spacing: 0.5px; }
+
+  /* ===== Coluna principal ===== */
+  .main-col { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+  .topbar {
+    height: 60px;
+    border-bottom: 1px solid var(--line-2);
+    background: rgba(251,249,244,0.8);
+    backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: flex-end;
+    gap: 18px;
+    padding: 0 30px;
+    position: sticky; top: 0; z-index: 5;
+  }
+  .topbar .crumb { margin-right: auto; font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--ink-3); }
+  .icon-btn { width: 34px; height: 34px; border: 1px solid var(--line-2); border-radius: var(--radius); background: var(--panel); display: grid; place-items: center; color: var(--ink-2); cursor: pointer; position: relative; }
+  .icon-btn .dot { position: absolute; top: -5px; right: -5px; width: 16px; height: 16px; background: var(--amber); color: #fff; border-radius: 50%; font-size: 9px; font-weight: 700; display: grid; place-items: center; font-family: "IBM Plex Mono", monospace; }
+  .who { display: flex; align-items: center; gap: 10px; }
+  .who .av { width: 34px; height: 34px; border-radius: 50%; background: var(--pine); color: var(--paper); display: grid; place-items: center; font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: 12px; }
+  .who .nm { font-weight: 600; font-size: 13px; line-height: 1.1; }
+  .who .rl { font-family: "IBM Plex Mono", monospace; font-size: 10px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.5px; }
+  .out { border: 1px solid var(--line-2); background: var(--panel); border-radius: var(--radius); padding: 7px 14px; font-size: 13px; font-weight: 500; color: var(--ink-2); cursor: pointer; }
+
+  main { padding: 34px 40px 60px; max-width: 1180px; width: 100%; }
+
+  /* Cabeçalho de página */
+  .page-head { display: flex; align-items: flex-end; justify-content: space-between; padding-bottom: 18px; border-bottom: 1px solid var(--line-2); margin-bottom: 28px; }
+  .page-head h1 { font-family: "Fraunces", serif; font-weight: 600; font-size: 30px; letter-spacing: -0.5px; line-height: 1; }
+  .page-head .lead { color: var(--ink-2); margin-top: 9px; font-size: 14px; }
+  .page-head .kicker { font-family: "IBM Plex Mono", monospace; font-size: 10.5px; letter-spacing: 2px; text-transform: uppercase; color: var(--pine-2); margin-bottom: 9px; }
+  .btn-primary { background: var(--pine); color: var(--paper); border: none; border-radius: var(--radius); padding: 11px 18px; font-family: "Hanken Grotesk"; font-weight: 600; font-size: 13.5px; cursor: pointer; letter-spacing: 0.2px; }
+  .btn-primary:hover { background: var(--pine-2); }
+
+  /* ===== Régua de métricas ===== */
+  .metrics {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    border: 1px solid var(--line-2);
+    background: var(--panel);
+    border-radius: var(--radius);
+    margin-bottom: 28px;
+    overflow: hidden;
+  }
+  .metric { padding: 20px 22px; border-right: 1px solid var(--line); position: relative; }
+  .metric:last-child { border-right: none; }
+  .metric::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--pine); opacity: 0.0; transition: opacity .2s; }
+  .metric:hover::before { opacity: 1; }
+  .metric .mk { font-family: "IBM Plex Mono", monospace; font-size: 10.5px; letter-spacing: 1px; text-transform: uppercase; color: var(--ink-3); }
+  .metric .mv { font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: 38px; line-height: 1; margin-top: 12px; letter-spacing: -1px; font-variant-numeric: tabular-nums; }
+  .metric .mh { font-size: 12px; color: var(--ink-3); margin-top: 9px; }
+  .metric.alert .mv { color: var(--amber); }
+
+  /* ===== Grade de fichas ===== */
+  .grid { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; }
+  .col { display: flex; flex-direction: column; gap: 24px; }
+
+  .ficha {
+    border: 1px solid var(--line-2);
+    background: var(--panel);
+    border-radius: var(--radius);
+    position: relative;
+  }
+  .ficha::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--pine); }
+  .ficha-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px 14px; border-bottom: 1px solid var(--line); }
+  .ficha-head h3 { font-family: "Fraunces", serif; font-weight: 600; font-size: 18px; letter-spacing: -0.2px; }
+  .ficha-head .more { font-family: "IBM Plex Mono", monospace; font-size: 11px; color: var(--pine-2); text-decoration: none; letter-spacing: 0.5px; }
+  .ficha-head .more:hover { text-decoration: underline; }
+  .ficha-body { padding: 8px 22px 20px; }
+
+  /* Linhas de projeto (registro) */
+  .rec { display: block; text-decoration: none; color: inherit; padding: 16px 0; border-bottom: 1px solid var(--line); }
+  .rec:last-child { border-bottom: none; }
+  .rec-top { display: flex; align-items: baseline; gap: 12px; }
+  .rec .clause { font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: 12px; color: var(--paper); background: var(--pine); padding: 2px 7px; border-radius: var(--radius); letter-spacing: 0.5px; }
+  .rec .ttl { font-weight: 600; font-size: 14.5px; }
+  .rec .meta { font-family: "IBM Plex Mono", monospace; font-size: 11px; color: var(--ink-3); margin-left: auto; }
+  .rec .pct { font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: 14px; font-variant-numeric: tabular-nums; }
+  .rule { height: 6px; margin-top: 12px; background:
+      repeating-linear-gradient(90deg, var(--line) 0 7px, transparent 7px 9px); position: relative; }
+  .rule i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--pine); }
+  .rec.warn .rule i { background: var(--amber); }
+  .rec .subm { font-family: "IBM Plex Mono", monospace; font-size: 10.5px; color: var(--ink-3); margin-top: 8px; }
+
+  /* Status tipográfico */
+  .status-list { display: flex; flex-direction: column; gap: 14px; }
+  .st { display: flex; align-items: center; gap: 12px; }
+  .st .mark { font-size: 15px; width: 18px; text-align: center; line-height: 1; }
+  .st .mark.done { color: var(--pine); }
+  .st .mark.prog { color: var(--sage); }
+  .st .mark.none { color: var(--ink-3); }
+  .st .stl { font-size: 13.5px; flex: 1; }
+  .st .stn { font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: 15px; font-variant-numeric: tabular-nums; }
+
+  .donut-wrap { display: flex; align-items: center; gap: 22px; padding-top: 4px; }
+  .donut { width: 92px; height: 92px; flex-shrink: 0; }
+
+  /* Ações em aberto */
+  .act { display: block; text-decoration: none; color: inherit; padding-left: 14px; border-left: 2px solid var(--line-2); margin-bottom: 16px; }
+  .act:last-child { margin-bottom: 0; }
+  .act.crit { border-left-color: var(--amber); }
+  .act .at { font-size: 13.5px; line-height: 1.4; }
+  .act .am { font-family: "IBM Plex Mono", monospace; font-size: 10.5px; color: var(--ink-3); margin-top: 6px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .tag { font-family: "IBM Plex Mono", monospace; font-size: 10px; letter-spacing: 0.5px; text-transform: uppercase; padding: 1px 6px; border: 1px solid var(--line-2); border-radius: var(--radius); }
+  .tag.high { color: var(--amber); border-color: var(--amber); }
+
+  /* Animação de entrada escalonada */
+  .reveal { opacity: 0; transform: translateY(8px); animation: rise .5s cubic-bezier(.2,.7,.3,1) forwards; }
+  @keyframes rise { to { opacity: 1; transform: none; } }
+  .d1{animation-delay:.05s}.d2{animation-delay:.12s}.d3{animation-delay:.19s}.d4{animation-delay:.26s}.d5{animation-delay:.33s}.d6{animation-delay:.4s}
+
+  /* faixa de aviso de preview */
+  .preview-flag { position: fixed; bottom: 16px; right: 16px; z-index: 50; background: var(--ink); color: var(--paper); font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: 0.5px; padding: 8px 14px; border-radius: var(--radius); box-shadow: 0 4px 18px rgba(0,0,0,.18); }
+  .preview-flag b { color: var(--amber); }
+</style>
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="side">
+      <div class="brand">
+        <div class="seal">SGI</div>
+        <div>
+          <div class="wm">ISO&nbsp;Dossiê</div>
+          <div class="sub">Implantação · SGI</div>
+        </div>
+      </div>
+      <nav>
+        <div class="nav-label">Operação</div>
+        <a class="nav-item active" href="#"><span class="num">01</span><span class="lbl">Painel</span></a>
+        <a class="nav-item" href="#"><span class="num">02</span><span class="lbl">Clientes</span></a>
+        <a class="nav-item" href="#"><span class="num">03</span><span class="lbl">Projetos</span></a>
+        <a class="nav-item" href="#"><span class="num">04</span><span class="lbl">Auditorias</span></a>
+        <a class="nav-item" href="#"><span class="num">05</span><span class="lbl">Relatórios</span></a>
+        <div class="nav-label" style="margin-top:14px">Administração</div>
+        <a class="nav-item" href="#"><span class="num">06</span><span class="lbl">Equipe</span></a>
+        <a class="nav-item" href="#"><span class="num">07</span><span class="lbl">Configurações</span></a>
+      </nav>
+      <div class="side-foot">
+        <div class="org">JVM Consultoria</div>
+        <div class="ver">org · 4 membros · v0.1</div>
+      </div>
+    </aside>
+
+    <!-- Coluna principal -->
+    <div class="main-col">
+      <div class="topbar">
+        <div class="crumb">Painel / Visão geral</div>
+        <button class="icon-btn" title="Notificações">
+          <svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 10-12 0v3.2a2 2 0 01-.6 1.4L4 17h5m6 0a3 3 0 11-6 0m6 0H9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span class="dot">3</span>
+        </button>
+        <div class="who">
+          <div class="av">JM</div>
+          <div>
+            <div class="nm">João Morais</div>
+            <div class="rl">Admin</div>
+          </div>
+        </div>
+        <button class="out">Sair</button>
+      </div>
+
+      <main>
+        <div class="page-head reveal d1">
+          <div>
+            <div class="kicker">Documento controlado · 2026-06-06</div>
+            <h1>Painel</h1>
+            <div class="lead">Visão geral das suas implantações de SGI</div>
+          </div>
+          <button class="btn-primary">+ Novo projeto</button>
+        </div>
+
+        <!-- Régua de métricas -->
+        <div class="metrics reveal d2">
+          <div class="metric">
+            <div class="mk">Clientes</div>
+            <div class="mv">12</div>
+            <div class="mh">Empresas acompanhadas</div>
+          </div>
+          <div class="metric">
+            <div class="mk">Projetos ativos</div>
+            <div class="mv">04</div>
+            <div class="mh">7 no total</div>
+          </div>
+          <div class="metric">
+            <div class="mk">Conclusão média</div>
+            <div class="mv">68%</div>
+            <div class="mh">Média entre projetos</div>
+          </div>
+          <div class="metric alert">
+            <div class="mk">Req. pendentes</div>
+            <div class="mv">23</div>
+            <div class="mh">41 documentos gerados</div>
+          </div>
+        </div>
+
+        <div class="grid">
+          <!-- Projetos recentes -->
+          <div class="ficha reveal d3">
+            <div class="ficha-head">
+              <h3>Projetos recentes</h3>
+              <a class="more" href="#">VER TODOS →</a>
+            </div>
+            <div class="ficha-body">
+              <a class="rec" href="#">
+                <div class="rec-top">
+                  <span class="clause">9001</span>
+                  <span class="ttl">Sistema de Gestão da Qualidade</span>
+                  <span class="meta">Acme Ltda</span>
+                  <span class="pct">68%</span>
+                </div>
+                <div class="rule"><i style="width:68%"></i></div>
+                <div class="subm">atualizado 02/06/2026 · 24 de 36 requisitos</div>
+              </a>
+              <a class="rec warn" href="#">
+                <div class="rec-top">
+                  <span class="clause" style="background:var(--amber)">14001</span>
+                  <span class="ttl">Gestão Ambiental</span>
+                  <span class="meta">Verde Indústria</span>
+                  <span class="pct" style="color:var(--amber)">41%</span>
+                </div>
+                <div class="rule"><i style="width:41%"></i></div>
+                <div class="subm">atualizado 28/05/2026 · 3 requisitos atrasados</div>
+              </a>
+              <a class="rec" href="#">
+                <div class="rec-top">
+                  <span class="clause">45001</span>
+                  <span class="ttl">Saúde &amp; Segurança Ocupacional</span>
+                  <span class="meta">Construtora Polo</span>
+                  <span class="pct">82%</span>
+                </div>
+                <div class="rule"><i style="width:82%"></i></div>
+                <div class="subm">atualizado 05/06/2026 · 31 de 38 requisitos</div>
+              </a>
+              <a class="rec" href="#">
+                <div class="rec-top">
+                  <span class="clause">27001</span>
+                  <span class="ttl">Segurança da Informação</span>
+                  <span class="meta">DataSeg S.A.</span>
+                  <span class="pct">19%</span>
+                </div>
+                <div class="rule"><i style="width:19%"></i></div>
+                <div class="subm">atualizado 21/05/2026 · 18 de 93 requisitos</div>
+              </a>
+            </div>
+          </div>
+
+          <!-- Coluna direita -->
+          <div class="col">
+            <div class="ficha reveal d4">
+              <div class="ficha-head"><h3>Requisitos por status</h3></div>
+              <div class="ficha-body">
+                <div class="donut-wrap">
+                  <svg class="donut" viewBox="0 0 42 42">
+                    <circle cx="21" cy="21" r="15.9" fill="none" stroke="var(--line)" stroke-width="5"/>
+                    <circle cx="21" cy="21" r="15.9" fill="none" stroke="var(--pine)" stroke-width="5"
+                            stroke-dasharray="61 39" stroke-dashoffset="25" stroke-linecap="butt"/>
+                    <circle cx="21" cy="21" r="15.9" fill="none" stroke="var(--sage)" stroke-width="5"
+                            stroke-dasharray="26 74" stroke-dashoffset="-36" stroke-linecap="butt"/>
+                    <text x="21" y="22" text-anchor="middle" dominant-baseline="middle"
+                          font-family="IBM Plex Mono" font-size="8" font-weight="600" fill="var(--ink)">23</text>
+                  </svg>
+                  <div class="status-list" style="flex:1">
+                    <div class="st"><span class="mark done">●</span><span class="stl">Conforme</span><span class="stn">14</span></div>
+                    <div class="st"><span class="mark prog">◐</span><span class="stl">Em análise</span><span class="stn">06</span></div>
+                    <div class="st"><span class="mark none">○</span><span class="stl">Não iniciado</span><span class="stn">03</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="ficha reveal d5">
+              <div class="ficha-head"><h3>Ações em aberto</h3></div>
+              <div class="ficha-body">
+                <a class="act crit" href="#">
+                  <div class="at">Atualizar procedimento de controle de documentos</div>
+                  <div class="am"><span class="tag high">Atrasado</span><span>7.5.3</span><span>· 28/05/2026</span></div>
+                </a>
+                <a class="act" href="#">
+                  <div class="at">Levantar aspectos e impactos ambientais do setor de pintura</div>
+                  <div class="am"><span class="tag">Em andamento</span><span>6.1.2</span><span>· 12/06/2026</span></div>
+                </a>
+                <a class="act" href="#">
+                  <div class="at">Definir indicadores de desempenho de SST</div>
+                  <div class="am"><span class="tag">Aberto</span><span>9.1.1</span><span>· 20/06/2026</span></div>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div class="preview-flag">PREVIEW · direção <b>"Dossiê"</b> — não aplicado ao app</div>
+</body>
+</html>

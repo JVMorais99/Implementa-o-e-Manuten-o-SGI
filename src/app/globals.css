@@ -1,0 +1,178 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #f5f6fb;
+  --foreground: #1f2937;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Conteúdo de documentos gerados (HTML editável) */
+.doc-content h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 1rem 0 0.5rem;
+}
+.doc-content h2 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin: 1rem 0 0.4rem;
+}
+.doc-content h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0.8rem 0 0.3rem;
+}
+.doc-content p {
+  margin: 0.4rem 0;
+  line-height: 1.6;
+}
+.doc-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.8rem 0;
+}
+.doc-content th,
+.doc-content td {
+  border: 1px solid #d1d5db;
+  padding: 0.5rem 0.65rem;
+  text-align: left;
+  vertical-align: top;
+}
+.doc-content th {
+  background: #eef2ff;
+  font-weight: 600;
+}
+.doc-content ul {
+  list-style: disc;
+  margin: 0.4rem 0 0.4rem 1.4rem;
+}
+
+/* Impressão / exportação para PDF de relatórios */
+@media print {
+  aside,
+  header {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+  }
+  main {
+    padding: 0 !important;
+  }
+  .shadow-card {
+    box-shadow: none !important;
+    border: 1px solid #e5e7eb;
+  }
+}
+
+/* ===================== Dark mode ===================== */
+/* Aplicado via classe `dark` no <html>. Recolore as superfícies, textos,
+   bordas e estados de hover usados em todo o sistema. */
+
+.dark {
+  --background: #0b1120;
+  --foreground: #e5e7eb;
+  color-scheme: dark;
+}
+
+/* Superfícies */
+.dark .bg-white,
+.dark .bg-white\/80 {
+  background-color: #1e293b !important;
+}
+.dark .bg-\[\#f5f6fb\] {
+  background-color: #0b1120 !important;
+}
+.dark .bg-gray-50 {
+  background-color: #0f172a !important;
+}
+.dark .bg-gray-100 {
+  background-color: #334155 !important;
+}
+
+/* Texto */
+.dark .text-gray-800 {
+  color: #f1f5f9 !important;
+}
+.dark .text-gray-700 {
+  color: #e2e8f0 !important;
+}
+.dark .text-gray-600 {
+  color: #cbd5e1 !important;
+}
+.dark .text-gray-500 {
+  color: #94a3b8 !important;
+}
+.dark .text-gray-400 {
+  color: #64748b !important;
+}
+
+/* Bordas */
+.dark .border-gray-100,
+.dark .border-gray-200 {
+  border-color: #334155 !important;
+}
+.dark .border-gray-300 {
+  border-color: #475569 !important;
+}
+.dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
+.dark .divide-gray-50 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #334155 !important;
+}
+
+/* Hover */
+.dark .hover\:bg-gray-50:hover {
+  background-color: #0f172a !important;
+}
+.dark .hover\:bg-gray-100:hover {
+  background-color: #334155 !important;
+}
+
+/* Tints da marca */
+.dark .bg-brand-50 {
+  background-color: rgba(37, 99, 235, 0.16) !important;
+}
+.dark .bg-brand-50\/30 {
+  background-color: rgba(37, 99, 235, 0.09) !important;
+}
+
+/* Inputs / selects / textareas */
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: #0f172a !important;
+  color: #e2e8f0 !important;
+  border-color: #475569 !important;
+}
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #64748b !important;
+}
+
+/* Gradiente das telas de login/cadastro */
+.dark .bg-gradient-to-br {
+  background-image: none !important;
+  background-color: #0b1120 !important;
+}
+
+/* Sombra dos cards */
+.dark .shadow-card {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Conteúdo de documentos no editor (cabeçalhos de tabela) */
+.dark .doc-content th {
+  background: #1e293b;
+  color: #e2e8f0;
+}
+.dark .doc-content th,
+.dark .doc-content td {
+  border-color: #475569;
+}

@@ -1,0 +1,41 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# next.js
+/.next/
+/out/
+next-env.d.ts
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# local env files (segredos) — .env.example é versionado
+.env
+.env*.local
+!.env.example
+
+# prisma / banco local
+/prisma/dev.db
+/prisma/dev.db-journal
+
+# uploads de evidências
+/storage/uploads/*
+!/storage/uploads/.gitkeep
+
+# typescript
+*.tsbuildinfo
+
+# Claude Code tooling local (nao faz parte da aplicacao)
+/.claude/
+/.agents/

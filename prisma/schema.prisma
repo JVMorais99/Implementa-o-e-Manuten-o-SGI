@@ -1,0 +1,414 @@
+// ISO Implementation Manager — schema Prisma
+//
+// Banco no dev: SQLite (roda sem setup). Para produção, trocar `provider` para
+// "postgresql" e ajustar DATABASE_URL. SQLite não suporta enum nem listas
+// escalares, por isso:
+//   - campos de status são String (validados por unions TS/Zod em src/lib/enums.ts)
+//   - campos "lista" (ex.: applicableStandards) são String contendo JSON
+// Ao migrar para Postgres, esses campos podem virar enums nativos / String[].
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  passwordHash  String
+  role          String    @default("CONSULTOR") // papel global legado; o papel efetivo vem de Membership
+  emailVerified DateTime? // carimbo de verificação de e-mail (null = não verificado)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  clients     Client[]
+  comments    RequirementComment[]
+  memberships Membership[]
+}
+
+// Token de uso único para fluxos de autenticação por e-mail: convite de membro,
+// redefinição de senha e verificação de e-mail. Guardamos apenas o hash do token
+// (o valor em claro vai no link enviado/exibido). Consumido na primeira validação.
+model AuthToken {
+  id        String   @id @default(cuid())
+  email     String
+  tokenHash String   @unique
+  type      String // INVITE | RESET | VERIFY
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([type])
+}
+
+// Organização (consultoria/equipe): unidade de compartilhamento. Todos os membros
+// enxergam os clientes/projetos/auditorias da organização, conforme seu papel.
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members   Membership[]
+  clients   Client[]
+  snapshots MetricSnapshot[]
+}
+
+// Snapshot diário dos KPIs do dashboard, por organização. Append-only (1 linha por
+// dia/organização). Permite calcular variação mês-a-mês ("vs. mês anterior") sem
+// reconstruir o passado — gravado de forma preguiçosa na 1ª visita ao dashboard.
+model MetricSnapshot {
+  id             String   @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  date           DateTime // dia (meia-noite) — chave do dia
+  clients        Int
+  activeProjects Int
+  pendingReqs    Int
+  overdueActions Int
+  avgProgress    Int
+  createdAt      DateTime @default(now())
+
+  @@unique([organizationId, date])
+  @@index([organizationId])
+}
+
+// Vínculo de um usuário a uma organização, com papel (RBAC). O acesso aos dados é
+// restrito aos clientes atrelados (MembershipClient), exceto para o papel ADMIN,
+// que enxerga todos os clientes da organização. O campo clientId é legado.
+model Membership {
+  id             String   @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role           String   @default("CONSULTOR") // ADMIN | CONSULTOR | AUDITOR | LEITOR | CLIENTE
+  clientId       String?  // legado: cliente único (substituído por MembershipClient)
+  client         Client?  @relation("ClientPortalMembers", fields: [clientId], references: [id], onDelete: SetNull)
+  createdAt      DateTime @default(now())
+
+  clients MembershipClient[]
+
+  @@unique([organizationId, userId])
+  @@index([userId])
+  @@index([organizationId])
+  @@index([clientId])
+}
+
+// Clientes atrelados a um membro: define o escopo de dados (clientes/projetos/
+// auditorias/relatórios) visível ao usuário. ADMIN ignora esta tabela (vê tudo).
+model MembershipClient {
+  membershipId String
+  membership   Membership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+  clientId     String
+  client       Client     @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+
+  @@id([membershipId, clientId])
+  @@index([clientId])
+}
+
+model Client {
+  id          String   @id @default(cuid())
+  name        String
+  cnpj        String?
+  unit        String?
+  responsible String?
+  contact     String?
+  segment     String?
+  scope       String?
+  notes       String?
+  userId      String   // criador (legado)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  projects      IsoProject[]
+  portalMembers Membership[] @relation("ClientPortalMembers")
+  memberLinks   MembershipClient[]
+
+  @@index([userId])
+  @@index([organizationId])
+}
+
+model IsoStandard {
+  id          String  @id @default(cuid())
+  code        String  @unique // ex.: "ISO 9001"
+  name        String
+  description String?
+
+  requirements        IsoRequirement[]
+  projectStandards    ProjectStandard[]
+  projectRequirements ProjectRequirement[]
+}
+
+model IsoRequirement {
+  id                String  @id @default(cuid())
+  standardId        String
+  standard          IsoStandard @relation(fields: [standardId], references: [id], onDelete: Cascade)
+  code              String  // ex.: "4.1"
+  title             String
+  description       String
+  consultantGuidance String
+  suggestedQuestion String
+  expectedEvidence  String  // JSON: string[]
+  order             Int
+
+  projectRequirements ProjectRequirement[]
+
+  @@unique([standardId, code])
+  @@index([standardId])
+}
+
+model IsoProject {
+  id          String   @id @default(cuid())
+  clientId    String
+  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  type        String   // ex.: "Implantação ISO 9001"
+  startDate   DateTime?
+  dueDate     DateTime?
+  responsible String?
+  status      String   @default("EM_ANDAMENTO")
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  standards    ProjectStandard[]
+  requirements ProjectRequirement[]
+  audits       Audit[]
+
+  @@index([clientId])
+}
+
+model ProjectStandard {
+  projectId  String
+  project    IsoProject  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  standardId String
+  standard   IsoStandard @relation(fields: [standardId], references: [id], onDelete: Cascade)
+
+  @@id([projectId, standardId])
+  @@index([standardId])
+}
+
+model ProjectRequirement {
+  id                String   @id @default(cuid())
+  projectId         String
+  project           IsoProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  standardId        String
+  standard          IsoStandard @relation(fields: [standardId], references: [id], onDelete: Cascade)
+  requirementId     String
+  requirement       IsoRequirement @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+  status            String   @default("NAO_INICIADO")
+  consultantNotes   String?
+  clientNotes       String?
+  responsible       String?
+  dueDate           DateTime?
+  completionPercent Int      @default(0)
+  // Sugestão consultiva da IA sobre a conformidade do requisito.
+  aiSuggestedStatus String?  // sugestão de status (PROJECT_REQUIREMENT_STATUSES)
+  aiRationale       String?
+  aiEvaluatedAt     DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  evidences          Evidence[]
+  generatedDocuments GeneratedDocument[]
+  actionPlans        ActionPlan[]
+  comments           RequirementComment[]
+  auditItems         AuditItem[]
+  auditFindings      AuditFinding[]
+
+  @@unique([projectId, requirementId])
+  @@index([projectId])
+  @@index([requirementId])
+}
+
+model Evidence {
+  id                   String   @id @default(cuid())
+  projectRequirementId String
+  projectRequirement   ProjectRequirement @relation(fields: [projectRequirementId], references: [id], onDelete: Cascade)
+  title                String
+  type                 String
+  fileUrl              String
+  fileName             String
+  receivedAt           DateTime?
+  expiresAt            DateTime?
+  status               String   @default("RECEBIDA")
+  technicalAnalysis    String?
+  // Avaliação consultiva da IA (não sobrescreve a análise do consultor).
+  aiAnalysis           String?
+  aiSuggestedStatus    String?  // sugestão de status (EVIDENCE_STATUSES)
+  aiConfidence         Int?     // 0-100
+  aiEvaluatedAt        DateTime?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@index([projectRequirementId])
+}
+
+model GeneratedDocument {
+  id                   String   @id @default(cuid())
+  projectRequirementId String
+  projectRequirement   ProjectRequirement @relation(fields: [projectRequirementId], references: [id], onDelete: Cascade)
+  templateId           String?
+  template             DocumentTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  title                String
+  contentHtml          String
+  contentJson          String?  // JSON: seções estruturadas para exportação
+  exportedDocxUrl      String?
+  status               String   @default("GERADO")
+  revision             Int      @default(0) // número da revisão atual
+  sentToClientAt       DateTime?
+  signedReceivedAt     DateTime?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  versions DocumentVersion[]
+
+  @@index([projectRequirementId])
+  @@index([templateId])
+}
+
+// Histórico append-only de revisões de um documento. A revisão de maior número
+// corresponde ao estado atual (espelhado em GeneratedDocument).
+model DocumentVersion {
+  id          String   @id @default(cuid())
+  documentId  String
+  document    GeneratedDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  revision    Int
+  title       String
+  contentHtml String
+  status      String
+  changeNote  String?
+  authorId    String?
+  authorName  String?
+  createdAt   DateTime @default(now())
+
+  @@unique([documentId, revision])
+  @@index([documentId])
+}
+
+model DocumentTemplate {
+  id                        String   @id @default(cuid())
+  name                      String
+  documentType              String   // ex.: "MATRIZ", "PROCEDIMENTO", "POLITICA", "PLANO"
+  applicableStandards       String   // JSON: string[] de códigos de norma
+  applicableRequirementCodes String  // JSON: string[] de códigos de requisito
+  description               String
+  defaultStructure          String   // JSON: seções padrão
+  contentTemplate           String   // corpo do template com placeholders {{...}}
+  isActive                  Boolean  @default(true)
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+
+  generatedDocuments GeneratedDocument[]
+}
+
+model ActionPlan {
+  id                   String   @id @default(cuid())
+  projectRequirementId String
+  projectRequirement   ProjectRequirement @relation(fields: [projectRequirementId], references: [id], onDelete: Cascade)
+  action               String
+  responsible          String?
+  dueDate              DateTime?
+  status               String   @default("ABERTO")
+  priority             String   @default("MEDIA")
+  aiGenerated          Boolean  @default(false) // item sugerido pela IA
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@index([projectRequirementId])
+}
+
+model RequirementComment {
+  id                   String   @id @default(cuid())
+  projectRequirementId String
+  projectRequirement   ProjectRequirement @relation(fields: [projectRequirementId], references: [id], onDelete: Cascade)
+  authorId             String
+  author               User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  text                 String
+  createdAt            DateTime @default(now())
+
+  @@index([projectRequirementId])
+  @@index([authorId])
+}
+
+// ----- Módulo de auditoria (interna e externa) -----
+
+// Uma auditoria conduzida sobre um projeto do cliente. Reúne o programa/escopo,
+// o checklist por requisito (AuditItem) e as constatações (AuditFinding). Atende
+// auditorias internas (preparação) e externas (organismo certificador).
+model Audit {
+  id           String   @id @default(cuid())
+  projectId    String
+  project      IsoProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  type         String   // INTERNA | EXTERNA
+  title        String
+  scope        String?  // escopo auditado
+  objective    String?  // objetivo da auditoria
+  criteria     String?  // critérios (normas, procedimentos, requisitos legais)
+  leadAuditor  String?  // auditor líder
+  auditTeam    String?  // demais auditores / equipe
+  auditedOrg   String?  // organismo certificador / auditor externo (auditoria externa)
+  plannedDate  DateTime?
+  executedDate DateTime?
+  status       String   @default("PLANEJADA") // PLANEJADA | EM_ANDAMENTO | CONCLUIDA | CANCELADA
+  conclusion   String?  // parecer/conclusão geral
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  items    AuditItem[]
+  findings AuditFinding[]
+
+  @@index([projectId])
+}
+
+// Item de checklist: avaliação de um requisito do projeto durante a auditoria.
+model AuditItem {
+  id                   String   @id @default(cuid())
+  auditId              String
+  audit                Audit    @relation(fields: [auditId], references: [id], onDelete: Cascade)
+  projectRequirementId String
+  projectRequirement   ProjectRequirement @relation(fields: [projectRequirementId], references: [id], onDelete: Cascade)
+  result               String   @default("NAO_AVALIADO") // CONFORME | NAO_CONFORME | OBSERVACAO | OPORTUNIDADE | NAO_APLICAVEL | NAO_AVALIADO
+  notes                String?  // anotações do auditor
+  evidenceSampled      String?  // evidências amostradas/verificadas
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@unique([auditId, projectRequirementId])
+  @@index([auditId])
+  @@index([projectRequirementId])
+}
+
+// Constatação de auditoria: não conformidade (maior/menor), observação ou
+// oportunidade de melhoria, com o tratamento (correção, causa, ação corretiva).
+model AuditFinding {
+  id                   String   @id @default(cuid())
+  auditId              String
+  audit                Audit    @relation(fields: [auditId], references: [id], onDelete: Cascade)
+  projectRequirementId String?
+  projectRequirement   ProjectRequirement? @relation(fields: [projectRequirementId], references: [id], onDelete: SetNull)
+  requirementCode      String?  // código do requisito (snapshot para o relatório)
+  type                 String   // NC_MAIOR | NC_MENOR | OBSERVACAO | OPORTUNIDADE
+  description          String
+  evidence             String?  // evidência objetiva da constatação
+  correction           String?  // correção imediata
+  rootCause            String?  // análise de causa-raiz
+  correctiveAction     String?  // ação corretiva proposta
+  responsible          String?
+  dueDate              DateTime?
+  status               String   @default("ABERTA") // ABERTA | EM_TRATAMENTO | VERIFICACAO | ENCERRADA
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@index([auditId])
+  @@index([projectRequirementId])
+}

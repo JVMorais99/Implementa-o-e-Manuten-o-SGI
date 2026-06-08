@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Preview — Direção "Cadre" (clara/arredondada) · ISO SGI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --blue:      #2D6BF6;
+    --blue-700:  #1F54D6;
+    --blue-50:   #EEF3FF;
+    --ink:       #1A1D29;
+    --ink-2:     #5A6172;
+    --ink-3:     #9AA1B2;
+    --line:      #ECEDF2;
+    --line-2:    #E2E4EC;
+    --panel:     #FFFFFF;
+    --app-bg:    #F4F5FA;
+    --soft:      #F7F8FC;
+    --green:     #16A34A;
+    --green-50:  #E9F8EF;
+    --amber:     #D9892B;
+    --amber-50:  #FBF1E2;
+    --red:       #E5484D;
+    --gold:      #F5B301;
+    --radius:    16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: "Inter", system-ui, sans-serif;
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    font-size: 14px; line-height: 1.5;
+    /* fundo suave com brumas coloridas, como na referência */
+    background:
+      radial-gradient(60vw 50vh at 8% 4%, rgba(94,234,212,0.30), transparent 60%),
+      radial-gradient(55vw 50vh at 96% 96%, rgba(251,146,160,0.30), transparent 60%),
+      radial-gradient(50vw 50vh at 95% 4%, rgba(196,181,253,0.25), transparent 55%),
+      var(--app-bg);
+    padding: 18px;
+  }
+
+  /* moldura branca flutuante */
+  .shell {
+    display: flex; height: calc(100vh - 36px);
+    background: var(--panel);
+    border-radius: 22px;
+    box-shadow: 0 20px 60px rgba(26,29,41,0.10), 0 2px 8px rgba(26,29,41,0.04);
+    overflow: hidden;
+  }
+
+  /* ===== Sidebar ===== */
+  .side { width: 230px; flex-shrink: 0; border-right: 1px solid var(--line); display: flex; flex-direction: column; padding: 16px 14px; }
+  .logo { display: flex; align-items: center; gap: 10px; padding: 6px 8px 16px; }
+  .logo .burger { color: var(--ink-2); }
+  .logo .wm { font-weight: 800; font-size: 17px; letter-spacing: -0.3px; }
+  .logo .pro { background: var(--ink); color: #fff; font-size: 9px; font-weight: 700; letter-spacing: 0.5px; padding: 2px 6px; border-radius: 6px; }
+
+  .nav-section { font-size: 11px; font-weight: 600; color: var(--ink-3); letter-spacing: 0.3px; padding: 14px 8px 6px; }
+  .nav-item { display: flex; align-items: center; gap: 11px; padding: 9px 10px; border-radius: 10px; color: var(--ink-2); text-decoration: none; font-weight: 500; font-size: 13.5px; cursor: pointer; }
+  .nav-item:hover { background: var(--soft); color: var(--ink); }
+  .nav-item .chev { margin-left: auto; color: var(--ink-3); }
+  .nav-item.open { color: var(--ink); }
+  .sub { padding: 2px 0 4px 30px; }
+  .sub a { display: flex; align-items: center; justify-content: space-between; padding: 7px 10px; border-radius: 8px; font-size: 13px; color: var(--ink-2); text-decoration: none; }
+  .sub a.active { background: var(--blue-50); color: var(--blue); font-weight: 600; }
+  .sub a:hover:not(.active) { background: var(--soft); }
+  .sub .dot { width: 6px; height: 6px; border-radius: 50%; }
+  .dot.blue { background: var(--blue); } .dot.amber { background: var(--amber); }
+
+  /* ===== Main ===== */
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column; background: var(--soft); }
+
+  .topbar { display: flex; align-items: center; gap: 14px; padding: 16px 26px; }
+  .back { display: flex; align-items: center; gap: 7px; color: var(--ink-2); font-weight: 600; font-size: 13.5px; text-decoration: none; }
+  .back:hover { color: var(--ink); }
+  .top-actions { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  .ic { position: relative; width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; color: var(--ink-2); cursor: pointer; }
+  .ic:hover { background: #fff; }
+  .ic .badge { position: absolute; top: 2px; right: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--red); color: #fff; font-size: 9px; font-weight: 700; display: grid; place-items: center; border: 2px solid var(--soft); }
+  .btn-ghost { display: inline-flex; align-items: center; gap: 8px; background: #fff; border: 1px solid var(--line-2); border-radius: 10px; padding: 9px 14px; font-weight: 600; font-size: 13px; color: var(--ink); cursor: pointer; }
+  .btn-dark { display: inline-flex; align-items: center; gap: 7px; background: var(--ink); color: #fff; border: none; border-radius: 10px; padding: 10px 16px; font-weight: 600; font-size: 13px; cursor: pointer; }
+  .av-top { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg,#6366f1,#a855f7); display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 12px; }
+
+  .scroll { flex: 1; overflow-y: auto; padding: 6px 26px 28px; }
+
+  /* Cabeçalho do projeto */
+  .proj-head { display: flex; align-items: center; gap: 14px; margin: 10px 2px 18px; }
+  .proj-head h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.4px; }
+  .tag-soft { display: inline-flex; align-items: center; gap: 7px; background: #fff; border: 1px solid var(--line-2); border-radius: 8px; padding: 5px 11px; font-size: 12.5px; font-weight: 600; color: var(--ink-2); }
+  .pill { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 5px 12px; font-size: 12.5px; font-weight: 600; }
+  .pill.active { background: #fff; border: 1px solid var(--line-2); color: var(--ink); }
+  .pill.active .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+  .pill.ring { background: #fff; border: 1px solid var(--line-2); color: var(--ink-2); }
+  .ring-ico { width: 15px; height: 15px; }
+  .head-actions { margin-left: auto; display: flex; align-items: center; gap: 9px; }
+  .kebab { width: 34px; height: 34px; border-radius: 9px; border: 1px solid var(--line-2); background: #fff; display: grid; place-items: center; color: var(--ink-2); cursor: pointer; }
+
+  /* Abas principais */
+  .tabs { display: flex; gap: 26px; border-bottom: 1px solid var(--line); padding: 0 2px; margin-bottom: 20px; }
+  .tab { display: flex; align-items: center; gap: 8px; padding: 12px 2px; font-size: 13px; font-weight: 600; color: var(--ink-3); border-bottom: 2px solid transparent; cursor: pointer; margin-bottom: -1px; }
+  .tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+
+  /* Faixa de métricas dentro de card branco */
+  .metrics-card { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 4px 0; margin-bottom: 22px; }
+  .metrics { display: grid; grid-template-columns: repeat(5, 1fr); }
+  .metric { padding: 18px 22px; border-right: 1px solid var(--line); }
+  .metric:last-child { border-right: none; }
+  .metric .mv { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
+  .metric .mk { font-size: 10.5px; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase; color: var(--ink-3); margin-top: 5px; }
+  .metric.alert .mv { color: var(--amber); }
+  .meta-row { display: grid; grid-template-columns: repeat(5, 1fr); border-top: 1px solid var(--line); }
+  .meta { padding: 16px 22px; border-right: 1px solid var(--line); }
+  .meta:last-child { border-right: none; }
+  .meta .ml { font-size: 10.5px; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase; color: var(--ink-3); }
+  .meta .mvv { font-size: 14px; font-weight: 700; margin-top: 6px; }
+
+  /* Sub-abas */
+  .subtabs { display: flex; gap: 24px; padding: 0 2px 4px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+  .subtab { display: flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 600; color: var(--ink-3); padding-bottom: 8px; border-bottom: 2px solid transparent; cursor: pointer; }
+  .subtab.active { color: var(--blue); border-bottom-color: var(--blue); }
+  .count { background: var(--blue); color: #fff; font-size: 10px; font-weight: 700; border-radius: 6px; padding: 1px 6px; }
+  .subtab:not(.active) .count { background: var(--line-2); color: var(--ink-2); }
+
+  /* Toolbar */
+  .toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .found { font-size: 13.5px; font-weight: 600; color: var(--ink-2); margin-right: auto; }
+  .search { display: flex; align-items: center; gap: 8px; background: #fff; border: 1px solid var(--line-2); border-radius: 10px; padding: 9px 13px; width: 230px; color: var(--ink-3); font-size: 13px; }
+  .toggle { display: inline-flex; align-items: center; gap: 9px; background: #fff; border: 1px solid var(--line-2); border-radius: 10px; padding: 7px 12px 7px 9px; font-size: 12.5px; font-weight: 600; color: var(--ink); }
+  .sw { width: 32px; height: 18px; border-radius: 999px; background: var(--blue); position: relative; }
+  .sw::after { content: ""; position: absolute; right: 2px; top: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff; }
+  .filters { display: inline-flex; align-items: center; gap: 7px; background: #fff; border: 1px solid var(--line-2); border-radius: 10px; padding: 9px 13px; font-size: 12.5px; font-weight: 600; color: var(--ink); cursor: pointer; }
+
+  /* Grade de cards de requisito */
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .rcard { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; transition: box-shadow .15s, border-color .15s; }
+  .rcard:hover { box-shadow: 0 8px 24px rgba(26,29,41,0.08); border-color: var(--line-2); }
+  .rc-head { display: flex; align-items: center; gap: 11px; margin-bottom: 14px; }
+  .clause { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 13px; flex-shrink: 0; }
+  .clause.b { background: var(--blue-50); color: var(--blue); }
+  .clause.g { background: var(--green-50); color: var(--green); }
+  .clause.a { background: var(--amber-50); color: var(--amber); }
+  .clause.n { background: #F1F2F6; color: var(--ink-2); }
+  .rc-id .nm { display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 14px; letter-spacing: -0.2px; }
+  .rc-id .nm .vr { width: 15px; height: 15px; color: var(--blue); }
+  .rc-id .nm .vr.gr { color: var(--green); }
+  .rc-id .meta2 { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-3); margin-top: 3px; }
+  .rc-id .meta2 .stars { color: var(--gold); letter-spacing: -1px; }
+  .subcard { display: grid; grid-template-columns: 1fr 1fr; background: var(--soft); border-radius: 11px; overflow: hidden; margin-bottom: 12px; }
+  .subcard > div { padding: 11px 14px; }
+  .subcard > div:first-child { border-right: 1px solid var(--line); }
+  .subcard .sv { font-size: 13px; font-weight: 700; }
+  .subcard .sl { font-size: 10px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; color: var(--ink-3); margin-top: 3px; }
+  .rc-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+  .ba { display: inline-flex; align-items: center; justify-content: center; gap: 7px; border-radius: 10px; padding: 9px 0; font-size: 12.5px; font-weight: 600; cursor: pointer; border: 1px solid var(--line-2); background: #fff; color: var(--ink); }
+  .ba.blue { color: var(--blue); border-color: #CFDDFF; }
+  .ba.filled { background: #F1F2F6; color: var(--ink-2); border-color: transparent; }
+  .ba.disabled { background: #F7F8FC; color: var(--ink-3); border-color: transparent; cursor: default; }
+  .rc-foot { text-align: center; font-size: 12px; font-weight: 600; margin-top: 12px; }
+  .rc-foot.warn { color: var(--amber); }
+  .rc-foot.ok { color: var(--ink-2); }
+  .rc-foot.ok b { color: var(--green); }
+  .rc-foot.danger { color: var(--red); }
+
+  .reveal { opacity: 0; transform: translateY(8px); animation: rise .5s cubic-bezier(.2,.7,.3,1) forwards; }
+  @keyframes rise { to { opacity: 1; transform: none; } }
+  .d1{animation-delay:.04s}.d2{animation-delay:.1s}.d3{animation-delay:.16s}.d4{animation-delay:.22s}.d5{animation-delay:.28s}.d6{animation-delay:.34s}
+
+  .preview-flag { position: fixed; bottom: 14px; right: 14px; z-index: 50; background: var(--ink); color: #fff; font-size: 11px; letter-spacing: 0.3px; padding: 8px 13px; border-radius: 9px; box-shadow: 0 6px 20px rgba(0,0,0,.18); }
+  .preview-flag b { color: #7FB0FF; }
+</style>
+</head>
+<body>
+  <div class="shell">
+    <!-- Sidebar -->
+    <aside class="side">
+      <div class="logo">
+        <svg class="burger" viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <span class="wm">ISO&nbsp;SGI</span>
+        <span class="pro">PRO</span>
+      </div>
+
+      <div class="nav-section">Principal</div>
+      <a class="nav-item">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none"><rect x="3" y="3" width="7" height="8" rx="1.5" stroke="currentColor" stroke-width="1.7"/><rect x="14" y="3" width="7" height="5" rx="1.5" stroke="currentColor" stroke-width="1.7"/><rect x="14" y="12" width="7" height="9" rx="1.5" stroke="currentColor" stroke-width="1.7"/><rect x="3" y="15" width="7" height="6" rx="1.5" stroke="currentColor" stroke-width="1.7"/></svg>
+        Dashboard
+      </a>
+      <a class="nav-item open">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" stroke="currentColor" stroke-width="1.7"/></svg>
+        Projetos
+        <svg class="chev" viewBox="0 0 24 24" width="15" height="15" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <div class="sub">
+        <a class="active">Ativos</a>
+        <a>Concluídos <span class="dot blue"></span></a>
+        <a>Suspensos <span class="dot amber"></span></a>
+        <a>Rascunho</a>
+      </div>
+      <a class="nav-item">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none"><circle cx="9" cy="8" r="3" stroke="currentColor" stroke-width="1.7"/><path d="M3 20a6 6 0 0112 0M16 11a3 3 0 100-6M21 20a6 6 0 00-5-5.9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        Clientes
+        <svg class="chev" viewBox="0 0 24 24" width="15" height="15" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <a class="nav-item">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none"><path d="M9 4h6a1 1 0 011 1v1h2a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V7a1 1 0 011-1h2V5a1 1 0 011-1z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9 13l2 2 4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Auditorias
+        <svg class="chev" viewBox="0 0 24 24" width="15" height="15" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <a class="nav-item">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none"><path d="M6 3h9l5 5v12a1 1 0 01-1 1H6a1 1 0 01-1-1V4a1 1 0 011-1z" stroke="currentColor" stroke-width="1.7"/><path d="M8 13h8M8 17h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        Relatórios
+      </a>
+
+      <div class="nav-section">Outros</div>
+      <a class="nav-item">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/><path d="M9.5 9.5a2.5 2.5 0 114 2c-.9.6-1.5 1-1.5 2M12 17h.01" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        Ajuda
+      </a>
+      <a class="nav-item">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none"><path d="M15 4h3a1 1 0 011 1v14a1 1 0 01-1 1h-3M10 8l-4 4 4 4M6 12h11" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Sair
+      </a>
+    </aside>
+
+    <!-- Main -->
+    <div class="main">
+      <div class="topbar">
+        <a class="back"><svg viewBox="0 0 24 24" width="17" height="17" fill="none"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg> Voltar aos projetos</a>
+        <div class="top-actions">
+          <div class="ic"><svg viewBox="0 0 24 24" width="19" height="19" fill="none"><path d="M21 11.5a8.4 8.4 0 01-1.9 5.4L21 21l-4.1-1.9A8.5 8.5 0 1121 11.5z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></div>
+          <div class="ic"><svg viewBox="0 0 24 24" width="19" height="19" fill="none"><path d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 10-12 0v3.2a2 2 0 01-.6 1.4L4 17h5m6 0a3 3 0 11-6 0m6 0H9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="badge">2</span></div>
+          <button class="btn-ghost"><svg viewBox="0 0 24 24" width="16" height="16" fill="none"><circle cx="9" cy="8" r="3" stroke="currentColor" stroke-width="1.7"/><path d="M3 19a6 6 0 0112 0M16 11a3 3 0 100-6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg> Equipe</button>
+          <button class="btn-dark"><svg viewBox="0 0 24 24" width="15" height="15" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Novo projeto</button>
+          <div class="av-top">JM</div>
+        </div>
+      </div>
+
+      <div class="scroll">
+        <!-- Cabeçalho do projeto -->
+        <div class="proj-head reveal d1">
+          <h1>Implantação ISO 9001 — Acme Ltda</h1>
+          <span class="tag-soft"><svg viewBox="0 0 24 24" width="14" height="14" fill="none"><path d="M4 7a2 2 0 012-2h12a2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V7z" stroke="currentColor" stroke-width="1.7"/><path d="M8 3v4M16 3v4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg> Sistema de Gestão</span>
+          <div class="head-actions">
+            <span class="pill active"><span class="dot"></span> Ativo</span>
+            <span class="pill ring">
+              <svg class="ring-ico" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" fill="none" stroke="#E6E8EF" stroke-width="5"/><circle cx="18" cy="18" r="15" fill="none" stroke="#2D6BF6" stroke-width="5" stroke-dasharray="63 100" stroke-dashoffset="25" stroke-linecap="round" transform="rotate(-90 18 18)"/></svg>
+              2 de 3 normas
+            </span>
+            <button class="kebab"><svg viewBox="0 0 24 24" width="16" height="16" fill="none"><circle cx="12" cy="5" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><circle cx="12" cy="19" r="1.6" fill="currentColor"/></svg></button>
+          </div>
+        </div>
+
+        <!-- Abas principais -->
+        <div class="tabs reveal d1">
+          <div class="tab active"><svg viewBox="0 0 24 24" width="15" height="15" fill="none"><path d="M4 5a1 1 0 011-1h6l2 2h6a1 1 0 011 1v11a1 1 0 01-1 1H5a1 1 0 01-1-1V5z" stroke="currentColor" stroke-width="1.7"/></svg> VISÃO GERAL</div>
+          <div class="tab"><svg viewBox="0 0 24 24" width="15" height="15" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/><path d="M12 8v4l3 2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg> EVIDÊNCIAS</div>
+          <div class="tab"><svg viewBox="0 0 24 24" width="15" height="15" fill="none"><path d="M6 3h9l5 5v12a1 1 0 01-1 1H6a1 1 0 01-1-1V4a1 1 0 011-1z" stroke="currentColor" stroke-width="1.7"/></svg> DOCUMENTOS</div>
+        </div>
+
+        <!-- Métricas + metadados -->
+        <div class="metrics-card reveal d2">
+          <div class="metrics">
+            <div class="metric"><div class="mv">24/36</div><div class="mk">Requisitos conformes</div></div>
+            <div class="metric"><div class="mv">68%</div><div class="mk">Conclusão</div></div>
+            <div class="metric alert"><div class="mv">3</div><div class="mk">Pendências</div></div>
+            <div class="metric"><div class="mv">4</div><div class="mk">Auditorias</div></div>
+            <div class="metric"><div class="mv">0</div><div class="mk">Não-conformidades</div></div>
+          </div>
+          <div class="meta-row">
+            <div class="meta"><div class="ml">Data início</div><div class="mvv">12 Nov 2025</div></div>
+            <div class="meta"><div class="ml">Previsão</div><div class="mvv">19 Mar 2026</div></div>
+            <div class="meta"><div class="ml">Cliente</div><div class="mvv">Acme Ltda · SP</div></div>
+            <div class="meta"><div class="ml">Nº projeto</div><div class="mvv">SGI-76431</div></div>
+            <div class="meta"><div class="ml">Consultor</div><div class="mvv">Jaison Alexander Jr</div></div>
+          </div>
+        </div>
+
+        <!-- Sub-abas -->
+        <div class="subtabs reveal d2">
+          <div class="subtab active">REQUISITOS <span class="count">36</span></div>
+          <div class="subtab">DOCUMENTOS <span class="count">12</span></div>
+          <div class="subtab">AÇÕES <span class="count">3</span></div>
+          <div class="subtab">EVIDÊNCIAS</div>
+          <div class="subtab">AUDITORIAS</div>
+          <div class="subtab">NÃO-CONFORMIDADES</div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar reveal d2">
+          <span class="found">36 requisitos na trilha</span>
+          <div class="search"><svg viewBox="0 0 24 24" width="15" height="15" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.7"/><path d="M20 20l-3-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg> Buscar requisito</div>
+          <div class="toggle"><span class="sw"></span> Só pendentes</div>
+          <button class="filters"><svg viewBox="0 0 24 24" width="14" height="14" fill="none"><path d="M4 5h16M7 12h10M10 19h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg> Filtros</button>
+        </div>
+
+        <!-- Grade de requisitos -->
+        <div class="grid">
+          <!-- card 1: conforme -->
+          <div class="rcard reveal d3">
+            <div class="rc-head">
+              <div class="clause g">7.5</div>
+              <div class="rc-id">
+                <div class="nm">Informação documentada <svg class="vr gr" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 1.7 2.9-.2 1 2.8 2.4 1.6-.9 2.8.9 2.8-2.4 1.6-1 2.8-2.9-.2L12 22l-2.4-1.7-2.9.2-1-2.8L3.3 16l.9-2.8-.9-2.8 2.4-1.6 1-2.8 2.9.2L12 2z"/><path d="M8.5 12l2.3 2.3 4.7-4.8" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+                <div class="meta2"><span class="stars">★★★★★</span> Conforme</div>
+              </div>
+            </div>
+            <div class="subcard"><div><div class="sv">Ana Souza</div><div class="sl">Responsável</div></div><div><div class="sv">8 evidências</div><div class="sl">Anexadas</div></div></div>
+            <div class="rc-actions"><button class="ba">Evidências</button><button class="ba blue">Ver documento</button></div>
+            <div class="rc-foot ok"><b>Conforme</b> — concluído em 02/06</div>
+          </div>
+
+          <!-- card 2: aguardando assinatura -->
+          <div class="rcard reveal d4">
+            <div class="rc-head">
+              <div class="clause a">8.4</div>
+              <div class="rc-id">
+                <div class="nm">Controle de fornecedores</div>
+                <div class="meta2">Em análise · ISO 9001</div>
+              </div>
+            </div>
+            <div class="subcard"><div><div class="sv">Carlos M.</div><div class="sl">Responsável</div></div><div><div class="sv">15 Jun 2026</div><div class="sl">Prazo</div></div></div>
+            <div class="rc-actions"><button class="ba">Evidências</button><button class="ba blue">+ Documento</button></div>
+            <div class="rc-foot warn">Aguardando assinatura do cliente</div>
+          </div>
+
+          <!-- card 3: novo -->
+          <div class="rcard reveal d5">
+            <div class="rc-head">
+              <div class="clause n">9.1</div>
+              <div class="rc-id">
+                <div class="nm">Monitoramento e medição</div>
+                <div class="meta2">Não iniciado · ISO 9001</div>
+              </div>
+            </div>
+            <div class="subcard"><div><div class="sv">—</div><div class="sl">Responsável</div></div><div><div class="sv">20 Jun 2026</div><div class="sl">Prazo</div></div></div>
+            <div class="rc-actions"><button class="ba">Detalhes</button><button class="ba blue">+ Documento</button></div>
+            <div class="rc-foot ok">Pronto para iniciar</div>
+          </div>
+
+          <!-- card 4: conforme -->
+          <div class="rcard reveal d4">
+            <div class="rc-head">
+              <div class="clause b">6.1</div>
+              <div class="rc-id">
+                <div class="nm">Riscos e oportunidades <svg class="vr" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 1.7 2.9-.2 1 2.8 2.4 1.6-.9 2.8.9 2.8-2.4 1.6-1 2.8-2.9-.2L12 22l-2.4-1.7-2.9.2-1-2.8L3.3 16l.9-2.8-.9-2.8 2.4-1.6 1-2.8 2.9.2L12 2z"/><path d="M8.5 12l2.3 2.3 4.7-4.8" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+                <div class="meta2"><span class="stars">★★★★☆</span> Revisar</div>
+              </div>
+            </div>
+            <div class="subcard"><div><div class="sv">Ana Souza</div><div class="sl">Responsável</div></div><div><div class="sv">5 evidências</div><div class="sl">Anexadas</div></div></div>
+            <div class="rc-actions"><button class="ba filled">Aprovado</button><button class="ba">Revisar</button></div>
+            <div class="rc-foot ok"><b>Conforme</b> — assinado 28/05</div>
+          </div>
+
+          <!-- card 5: atrasado -->
+          <div class="rcard reveal d5">
+            <div class="rc-head">
+              <div class="clause a">7.1</div>
+              <div class="rc-id">
+                <div class="nm">Recursos e infraestrutura</div>
+                <div class="meta2">Atrasado · ISO 9001</div>
+              </div>
+            </div>
+            <div class="subcard"><div><div class="sv">Carlos M.</div><div class="sl">Responsável</div></div><div><div class="sv" style="color:var(--red)">28 Mai</div><div class="sl">Venceu</div></div></div>
+            <div class="rc-actions"><button class="ba">Evidências</button><button class="ba blue">+ Documento</button></div>
+            <div class="rc-foot danger">Prazo vencido — requer atenção</div>
+          </div>
+
+          <!-- card 6: novo -->
+          <div class="rcard reveal d6">
+            <div class="rc-head">
+              <div class="clause n">10.2</div>
+              <div class="rc-id">
+                <div class="nm">Não-conformidade e ação</div>
+                <div class="meta2">Não iniciado · ISO 9001</div>
+              </div>
+            </div>
+            <div class="subcard"><div><div class="sv">—</div><div class="sl">Responsável</div></div><div><div class="sv">30 Jun 2026</div><div class="sl">Prazo</div></div></div>
+            <div class="rc-actions"><button class="ba">Detalhes</button><button class="ba blue">+ Documento</button></div>
+            <div class="rc-foot ok">Pronto para iniciar</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="preview-flag">PREVIEW · direção <b>"Cadre"</b> (clara/arredondada) — não aplicado ao app</div>
+</body>
+</html>

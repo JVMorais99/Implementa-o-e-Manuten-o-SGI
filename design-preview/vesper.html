@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Preview — Direção "Vesper" (clean/denso) · ISO SGI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --blue:     #2563EB;
+    --blue-700: #1D4ED8;
+    --blue-50:  #EFF4FF;
+    --ink:      #111827;
+    --ink-2:    #4B5563;
+    --ink-3:    #9CA3AF;
+    --line:     #ECEEF2;
+    --line-2:   #E3E6EB;
+    --bg:       #F5F6F8;
+    --soft:     #F8F9FB;
+    --green:    #16A34A; --green-50:#E7F7EE;
+    --amber:    #D97706; --amber-50:#FCF1E2;
+    --red:      #DC2626; --red-50:#FCEDED;
+    --purple:   #7C3AED; --purple-50:#F1ECFE;
+    --radius:   12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: "Inter", system-ui, sans-serif;
+    color: var(--ink); background: var(--bg);
+    -webkit-font-smoothing: antialiased; font-size: 14px; line-height: 1.5;
+  }
+  .app { display: flex; min-height: 100vh; }
+
+  /* ===== Sidebar ===== */
+  .side { width: 232px; flex-shrink: 0; background: #fff; border-right: 1px solid var(--line); display: flex; flex-direction: column; padding: 16px 14px; position: sticky; top: 0; height: 100vh; }
+  .logo { display: flex; align-items: center; gap: 9px; padding: 6px 8px 18px; }
+  .logo .mk { width: 26px; height: 26px; border-radius: 7px; background: linear-gradient(135deg,#2563EB,#60A5FA); display: grid; place-items: center; }
+  .logo .mk svg { color: #fff; }
+  .logo .wm { font-weight: 700; font-size: 17px; letter-spacing: -0.3px; }
+  .sec { font-size: 10.5px; font-weight: 600; letter-spacing: 0.7px; text-transform: uppercase; color: var(--ink-3); padding: 16px 9px 7px; }
+  .ni { display: flex; align-items: center; gap: 11px; padding: 8px 9px; border-radius: 9px; color: var(--ink-2); text-decoration: none; font-weight: 500; font-size: 13.5px; cursor: pointer; margin-bottom: 1px; }
+  .ni:hover { background: var(--soft); color: var(--ink); }
+  .ni.active { background: #F1F3F6; color: var(--ink); font-weight: 600; }
+  .ni .chev { margin-left: auto; color: var(--ink-3); }
+  .ni svg.lead { color: var(--ink-3); }
+  .ni.active svg.lead { color: var(--ink); }
+  .side-foot { margin-top: auto; border-top: 1px solid var(--line); padding-top: 12px; }
+
+  /* ===== Main ===== */
+  .main { flex: 1; min-width: 0; }
+  .topbar { display: flex; align-items: center; gap: 16px; padding: 14px 26px; background: var(--bg); }
+  .search { flex: 1; max-width: 560px; display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid var(--line-2); border-radius: 10px; padding: 10px 14px; color: var(--ink-3); font-size: 13.5px; }
+  .search .kbd { margin-left: auto; font-size: 11px; color: var(--ink-3); background: var(--soft); border: 1px solid var(--line-2); border-radius: 6px; padding: 1px 7px; }
+  .top-r { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+  .ic { width: 38px; height: 38px; border-radius: 10px; border: 1px solid var(--line-2); background: #fff; display: grid; place-items: center; color: var(--ink-2); cursor: pointer; position: relative; }
+  .ic:hover { color: var(--ink); }
+  .ic .badge { position: absolute; top: -5px; right: -5px; width: 16px; height: 16px; border-radius: 50%; background: var(--red); color: #fff; font-size: 9px; font-weight: 700; display: grid; place-items: center; border: 2px solid var(--bg); }
+  .me { display: flex; align-items: center; gap: 10px; padding-left: 6px; }
+  .me .av { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg,#6366f1,#a855f7); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 12px; }
+  .me .nm { font-weight: 600; font-size: 13.5px; line-height: 1.2; }
+  .me .em { font-size: 11.5px; color: var(--ink-3); }
+
+  .content { padding: 8px 26px 30px; }
+
+  .welcome { display: flex; align-items: center; margin: 8px 2px 20px; }
+  .welcome h1 { font-size: 25px; font-weight: 700; letter-spacing: -0.5px; }
+  .welcome p { color: var(--ink-2); margin-top: 5px; font-size: 13.5px; }
+  .btn-new { margin-left: auto; display: inline-flex; align-items: center; stretch: 0; }
+  .btn-new .b1 { display: inline-flex; align-items: center; gap: 8px; background: var(--blue); color: #fff; border: none; border-radius: 10px 0 0 10px; padding: 11px 16px; font-weight: 600; font-size: 13.5px; cursor: pointer; }
+  .btn-new .b2 { background: var(--blue-700); color: #fff; border: none; border-left: 1px solid rgba(255,255,255,.18); border-radius: 0 10px 10px 0; padding: 11px 9px; cursor: pointer; display: grid; place-items: center; }
+
+  /* KPIs */
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+  .kpi { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; }
+  .kpi .top { display: flex; align-items: center; justify-content: space-between; }
+  .kpi .kl { font-size: 13px; font-weight: 500; color: var(--ink-2); }
+  .kpi .ki { color: var(--ink-3); }
+  .kpi .row { display: flex; align-items: flex-end; gap: 12px; margin-top: 12px; }
+  .kpi .kv { font-size: 30px; font-weight: 700; letter-spacing: -1px; line-height: 1; }
+  .kpi .ku { font-size: 12px; color: var(--ink-3); font-weight: 500; margin-bottom: 3px; }
+  .kpi .delta { margin-left: auto; text-align: right; }
+  .chip { display: inline-flex; align-items: center; gap: 3px; font-size: 11.5px; font-weight: 700; padding: 3px 8px; border-radius: 999px; }
+  .chip.up { background: var(--green-50); color: var(--green); }
+  .chip.down { background: var(--red-50); color: var(--red); }
+  .chip.downgood { background: var(--green-50); color: var(--green); }
+  .kpi .vs { font-size: 11px; color: var(--ink-3); margin-top: 5px; }
+
+  /* Grid de cards */
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); }
+  .card-h { display: flex; align-items: flex-start; justify-content: space-between; padding: 16px 18px 12px; }
+  .card-h h3 { font-size: 15px; font-weight: 700; letter-spacing: -0.2px; }
+  .card-h p { font-size: 12.5px; color: var(--ink-3); margin-top: 2px; }
+  .kebab { color: var(--ink-3); cursor: pointer; }
+  .ctabs { display: flex; gap: 20px; padding: 0 18px; border-bottom: 1px solid var(--line); margin-bottom: 2px; }
+  .ct { font-size: 12.5px; font-weight: 600; color: var(--ink-3); padding: 0 0 10px; border-bottom: 2px solid transparent; margin-bottom: -1px; cursor: pointer; }
+  .ct.active { color: var(--blue); border-bottom-color: var(--blue); }
+
+  table { width: 100%; border-collapse: collapse; }
+  thead th { font-size: 11px; font-weight: 600; letter-spacing: 0.3px; text-transform: uppercase; color: var(--ink-3); text-align: left; padding: 10px 18px; }
+  tbody td { padding: 9px 18px; font-size: 13px; border-top: 1px solid var(--line); }
+  tbody tr:hover { background: var(--soft); }
+  .who { display: flex; align-items: center; gap: 10px; }
+  .ava { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 10px; font-weight: 700; flex-shrink: 0; }
+  .ava.b{background:var(--blue-50);color:var(--blue)} .ava.g{background:var(--green-50);color:var(--green)} .ava.p{background:var(--purple-50);color:var(--purple)} .ava.a{background:var(--amber-50);color:var(--amber)} .ava.n{background:#F1F3F6;color:var(--ink-2)}
+  .who .nm2 { font-weight: 600; }
+  .badge2 { display: inline-flex; align-items: center; font-size: 11.5px; font-weight: 600; padding: 3px 10px; border-radius: 999px; }
+  .badge2.r{background:var(--red-50);color:var(--red)} .badge2.a{background:var(--amber-50);color:var(--amber)} .badge2.g{background:var(--green-50);color:var(--green)} .badge2.p{background:var(--purple-50);color:var(--purple)} .badge2.b{background:var(--blue-50);color:var(--blue)}
+  .gender { font-size: 11px; }
+  .stico { width: 18px; height: 18px; border-radius: 5px; display: inline-grid; place-items: center; vertical-align: middle; margin-right: 9px; }
+  .stico.r{background:var(--red-50);color:var(--red)} .stico.g{background:var(--green-50);color:var(--green)} .stico.a{background:var(--amber-50);color:var(--amber)}
+  .test-name { display: flex; align-items: center; }
+  .link { color: var(--blue); font-weight: 600; font-size: 12.5px; text-decoration: none; }
+  .link:hover { text-decoration: underline; }
+  .progress-mini { display: flex; align-items: center; gap: 8px; }
+  .pm-bar { width: 70px; height: 6px; background: var(--line-2); border-radius: 99px; overflow: hidden; }
+  .pm-bar i { display: block; height: 100%; background: var(--blue); }
+  .pm-val { font-size: 12px; font-weight: 600; color: var(--ink-2); }
+
+  /* Tasks */
+  .task { display: flex; align-items: center; padding: 11px 18px; border-top: 1px solid var(--line); }
+  .ck { width: 18px; height: 18px; border-radius: 50%; border: 1.8px solid var(--line-2); margin-right: 12px; flex-shrink: 0; display: grid; place-items: center; }
+  .ck.done { background: var(--blue); border-color: var(--blue); }
+  .ck.done svg { color: #fff; }
+  .task .tt { font-size: 13px; font-weight: 500; }
+  .task.done .tt { color: var(--ink-3); text-decoration: line-through; }
+  .task .from { margin-left: auto; display: flex; align-items: center; gap: 8px; color: var(--ink-2); font-size: 12.5px; }
+  .task .from .ava { width: 22px; height: 22px; font-size: 9px; }
+  .th-row { display:flex; padding: 10px 18px 6px; font-size:11px; font-weight:600; letter-spacing:.3px; text-transform:uppercase; color:var(--ink-3);}
+  .th-row .a{flex:1} .th-row .b{width:160px}
+
+  .grid-2x2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+
+  .reveal { opacity: 0; transform: translateY(8px); animation: rise .5s cubic-bezier(.2,.7,.3,1) forwards; }
+  @keyframes rise { to { opacity: 1; transform: none; } }
+  .d1{animation-delay:.04s}.d2{animation-delay:.1s}.d3{animation-delay:.16s}.d4{animation-delay:.22s}.d5{animation-delay:.28s}
+
+  .preview-flag { position: fixed; bottom: 14px; right: 14px; z-index: 50; background: var(--ink); color: #fff; font-size: 11px; padding: 8px 13px; border-radius: 9px; box-shadow: 0 6px 20px rgba(0,0,0,.18); }
+  .preview-flag b { color: #7FB0FF; }
+</style>
+</head>
+<body>
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="side">
+      <div class="logo">
+        <div class="mk"><svg viewBox="0 0 24 24" width="15" height="15" fill="none"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8.5 12l2.5 2.5 4.5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <span class="wm">ISO&nbsp;SGI</span>
+      </div>
+
+      <div class="sec">Geral</div>
+      <a class="ni active"><svg class="lead" viewBox="0 0 24 24" width="17" height="17" fill="none"><path d="M3 11l9-7 9 7M5 10v9a1 1 0 001 1h12a1 1 0 001-1v-9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg> Dashboard</a>
+      <a class="ni"><svg class="lead" viewBox="0 0 24 24" width="17" height="17" fill="none"><circle cx="9" cy="8" r="3" stroke="currentColor" stroke-width="1.7"/><path d="M3 20a6 6 0 0112 0M16 11a3 3 0 100-6M21 20a6 6 0 00-5-5.9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg> Clientes</a>
+      <a class="ni"><svg class="lead" viewBox="0 0 24 24" width="17" height="17" fill="none"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" stroke="currentColor" stroke-width="1.7"/></svg> Projetos <svg class="chev" viewBox="0 0 24 24" width="15" height="15" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      <a class="ni"><svg class="lead" viewBox="0 0 24 24" width="17" height="17" fill="none"><path d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 10-12 0v3.2a2 2 0 01-.6 1.4L4 17h5m6 0a3 3 0 11-6 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg> Notificações</a>
+
+      <div class="sec">Módulos</div>
+      <a class="ni"><svg class="lead" viewBox="0 0 24 24" width="17" height="17" fill="none"><path d="M9 4h6a1 1 0 011 1v1h2a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V7a1 1 0 011-1h2V5a1 1 0 011-1z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9 13l2 2 4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg> Auditorias <svg class="chev" viewBox="0 0 24 24" width="15" height="15" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      <a class="ni"><svg class="lead" viewBox="0 0 24 24" width="17" height="17" fill="none"><path d="M6 3h9l5 5v12a1 1 0 01-1 1H6a1 1 0 01-1-1V4a1 1 0 011-1z" stroke="currentColor" stroke-width="1.7"/><path d="M8 13h8M8 17h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg> Documentos</a>
+      <a class="ni"><svg class="lead" viewBox="0 0 24 24" width="17" height="17" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/><path d="M12 8v4l3 2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg> Evidências</a>
+      <a class="ni"><svg class="lead" viewBox="0 0 24 24" width="17" height="17" fill="none"><path d="M9 11l3 3 8-8M21 12a9 9 0 11-6.2-8.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg> Planos de ação <svg class="chev" viewBox="0 0 24 24" width="15" height="15" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      <a class="ni"><svg class="lead" viewBox="0 0 24 24" width="17" height="17" fill="none"><path d="M4 19V5M4 19h16M8 16v-5M12 16V8M16 16v-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg> Relatórios</a>
+
+      <div class="sec">Suporte</div>
+      <a class="ni"><svg class="lead" viewBox="0 0 24 24" width="17" height="17" fill="none"><circle cx="8" cy="9" r="2.5" stroke="currentColor" stroke-width="1.7"/><circle cx="16" cy="9" r="2.5" stroke="currentColor" stroke-width="1.7"/><path d="M3.5 19a4.5 4.5 0 019 0M11.5 19a4.5 4.5 0 019 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg> Equipe</a>
+      <a class="ni"><svg class="lead" viewBox="0 0 24 24" width="17" height="17" fill="none"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.7"/><path d="M19 12a7 7 0 00-.1-1l2-1.5-2-3.4-2.3 1a7 7 0 00-1.7-1l-.4-2.6h-4l-.4 2.6a7 7 0 00-1.7 1l-2.3-1-2 3.4 2 1.5a7 7 0 000 2l-2 1.5 2 3.4 2.3-1a7 7 0 001.7 1l.4 2.6h4l.4-2.6a7 7 0 001.7-1l2.3 1 2-3.4-2-1.5z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg> Configurações</a>
+      <a class="ni"><svg class="lead" viewBox="0 0 24 24" width="17" height="17" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/><path d="M9.5 9.5a2.5 2.5 0 114 2c-.9.6-1.5 1-1.5 2M12 17h.01" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg> Ajuda</a>
+
+      <div class="side-foot">
+        <a class="ni"><svg class="lead" viewBox="0 0 24 24" width="17" height="17" fill="none"><path d="M15 4h3a1 1 0 011 1v14a1 1 0 01-1 1h-3M10 8l-4 4 4 4M6 12h11" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg> Sair</a>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <div class="main">
+      <div class="topbar">
+        <div class="search"><svg viewBox="0 0 24 24" width="16" height="16" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.7"/><path d="M20 20l-3-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg> Buscar cliente, projeto ou requisito <span class="kbd">⌘ + F</span></div>
+        <div class="top-r">
+          <div class="ic"><svg viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M21 11.5a8.4 8.4 0 01-1.9 5.4L21 21l-4.1-1.9A8.5 8.5 0 1121 11.5z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></div>
+          <div class="ic"><svg viewBox="0 0 24 24" width="18" height="18" fill="none"><path d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 10-12 0v3.2a2 2 0 01-.6 1.4L4 17h5m6 0a3 3 0 11-6 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="badge">3</span></div>
+          <div class="me">
+            <div class="av">JM</div>
+            <div>
+              <div class="nm">João Morais</div>
+              <div class="em">engjvmorais@gmail.com</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="welcome reveal d1">
+          <div>
+            <h1>Bem-vindo, João</h1>
+            <p>Acompanhe a implantação e manutenção das certificações dos seus clientes.</p>
+          </div>
+          <div class="btn-new">
+            <button class="b1"><svg viewBox="0 0 24 24" width="15" height="15" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Novo projeto</button>
+            <button class="b2"><svg viewBox="0 0 24 24" width="14" height="14" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          </div>
+        </div>
+
+        <!-- KPIs -->
+        <div class="kpis reveal d2">
+          <div class="kpi">
+            <div class="top"><span class="kl">Conclusão média</span><svg class="ki" viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M4 19V5M4 19h16M8 16v-5M12 16V8M16 16v-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></div>
+            <div class="row"><span class="kv">68</span><span class="ku">%</span><span class="delta"><span class="chip up">▲ 6%</span></span></div>
+            <div class="vs">vs. mês anterior</div>
+          </div>
+          <div class="kpi">
+            <div class="top"><span class="kl">Projetos ativos</span><svg class="ki" viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" stroke="currentColor" stroke-width="1.7"/></svg></div>
+            <div class="row"><span class="kv">4</span><span class="ku">/ 7</span><span class="delta"><span class="chip up">▲ 1</span></span></div>
+            <div class="vs">vs. mês anterior</div>
+          </div>
+          <div class="kpi">
+            <div class="top"><span class="kl">Requisitos pendentes</span><svg class="ki" viewBox="0 0 24 24" width="16" height="16" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="1.7"/><path d="M12 8v4l3 2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></div>
+            <div class="row"><span class="kv">23</span><span class="ku">reqs</span><span class="delta"><span class="chip downgood">▼ 12%</span></span></div>
+            <div class="vs">vs. mês anterior</div>
+          </div>
+          <div class="kpi">
+            <div class="top"><span class="kl">Ações atrasadas</span><svg class="ki" viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M12 9v4m0 4h.01M10.3 4.3l-7 12A1.5 1.5 0 004.6 19h14.8a1.5 1.5 0 001.3-2.7l-7-12a1.5 1.5 0 00-2.6 0z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg></div>
+            <div class="row"><span class="kv">3</span><span class="ku">abertas</span><span class="delta"><span class="chip down">▲ 32%</span></span></div>
+            <div class="vs">vs. mês anterior</div>
+          </div>
+        </div>
+
+        <!-- Linha 1 de cards -->
+        <div class="cols">
+          <!-- Projetos recentes -->
+          <div class="card reveal d3">
+            <div class="card-h">
+              <div><h3>Projetos recentes</h3><p>Acessados recentemente</p></div>
+              <svg class="kebab" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>
+            </div>
+            <table>
+              <thead><tr><th>Projeto / Cliente</th><th>Norma</th><th>Progresso</th><th>Situação</th></tr></thead>
+              <tbody>
+                <tr><td><div class="who"><span class="ava b">AC</span><span class="nm2">Acme Ltda</span></div></td><td>ISO 9001</td><td><div class="progress-mini"><span class="pm-bar"><i style="width:68%"></i></span><span class="pm-val">68%</span></div></td><td><span class="badge2 a">3 pendências</span></td></tr>
+                <tr><td><div class="who"><span class="ava g">VI</span><span class="nm2">Verde Indústria</span></div></td><td>ISO 14001</td><td><div class="progress-mini"><span class="pm-bar"><i style="width:41%"></i></span><span class="pm-val">41%</span></div></td><td><span class="badge2 r">2 atrasadas</span></td></tr>
+                <tr><td><div class="who"><span class="ava p">CP</span><span class="nm2">Construtora Polo</span></div></td><td>ISO 45001</td><td><div class="progress-mini"><span class="pm-bar"><i style="width:82%"></i></span><span class="pm-val">82%</span></div></td><td><span class="badge2 g">Conforme</span></td></tr>
+                <tr><td><div class="who"><span class="ava a">DS</span><span class="nm2">DataSeg S.A.</span></div></td><td>ISO 27001</td><td><div class="progress-mini"><span class="pm-bar"><i style="width:19%"></i></span><span class="pm-val">19%</span></div></td><td><span class="badge2 b">Em implantação</span></td></tr>
+                <tr><td><div class="who"><span class="ava n">MS</span><span class="nm2">Metalsul</span></div></td><td>ISO 9001</td><td><div class="progress-mini"><span class="pm-bar"><i style="width:55%"></i></span><span class="pm-val">55%</span></div></td><td><span class="badge2 a">1 pendência</span></td></tr>
+                <tr><td><div class="who"><span class="ava b">LF</span><span class="nm2">LogFast</span></div></td><td>ISO 14001</td><td><div class="progress-mini"><span class="pm-bar"><i style="width:94%"></i></span><span class="pm-val">94%</span></div></td><td><span class="badge2 g">Conforme</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Status dos requisitos -->
+          <div class="card reveal d4">
+            <div class="card-h">
+              <div><h3>Status dos requisitos</h3></div>
+              <svg class="kebab" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>
+            </div>
+            <div class="ctabs"><span class="ct active">ISO 9001</span><span class="ct">ISO 14001</span><span class="ct">ISO 45001</span></div>
+            <table>
+              <thead><tr><th>Requisito</th><th>Enviado</th><th>Assinado</th></tr></thead>
+              <tbody>
+                <tr><td><span class="test-name"><span class="stico r">✕</span>7.5.3 Controle de documentos</span></td><td>15/12/2025</td><td>—</td></tr>
+                <tr><td><span class="test-name"><span class="stico g">✓</span>6.1 Riscos e oportunidades</span></td><td>22/03/2026</td><td>22/03/2026</td></tr>
+                <tr><td><span class="test-name"><span class="stico g">✓</span>5.2 Política da qualidade</span></td><td>07/09/2025</td><td>07/09/2025</td></tr>
+                <tr><td><span class="test-name"><span class="stico a">!</span>8.4 Fornecedores externos</span></td><td>30/11/2025</td><td>—</td></tr>
+                <tr><td><span class="test-name"><span class="stico r">✕</span>9.1 Monitoramento e medição</span></td><td>14/05/2026</td><td>—</td></tr>
+                <tr><td><span class="test-name"><span class="stico g">✓</span>7.2 Competência</span></td><td>19/08/2025</td><td>19/08/2025</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Linha 2 de cards -->
+        <div class="grid-2x2">
+          <!-- Auditorias recentes -->
+          <div class="card reveal d4">
+            <div class="card-h">
+              <div><h3>Auditorias recentes</h3><p>Últimas conduzidas</p></div>
+              <svg class="kebab" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>
+            </div>
+            <table>
+              <thead><tr><th>Auditoria</th><th>Data</th><th>Ação</th></tr></thead>
+              <tbody>
+                <tr><td><span class="test-name"><span class="stico g">✓</span>Interna — Acme (9001)</span></td><td>15/12/2025</td><td><a class="link">Ver detalhes</a></td></tr>
+                <tr><td><span class="test-name"><span class="stico a">!</span>Externa — Verde (14001)</span></td><td>22/03/2026</td><td><a class="link">Ver detalhes</a></td></tr>
+                <tr><td><span class="test-name"><span class="stico g">✓</span>Interna — Polo (45001)</span></td><td>09/07/2025</td><td><a class="link">Ver detalhes</a></td></tr>
+                <tr><td><span class="test-name"><span class="stico r">✕</span>Certificação — DataSeg</span></td><td>14/05/2026</td><td><a class="link">Ver detalhes</a></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Ações em aberto -->
+          <div class="card reveal d5">
+            <div class="card-h">
+              <div><h3>Ações em aberto</h3><p>Criadas recentemente</p></div>
+              <svg class="kebab" viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>
+            </div>
+            <div class="th-row"><span class="a">Tarefa</span><span class="b">Responsável</span></div>
+            <div class="task"><span class="ck"></span><span class="tt">Atualizar procedimento de controle de documentos</span><span class="from"><span class="ava b">AS</span> Ana Souza</span></div>
+            <div class="task done"><span class="ck done"><svg viewBox="0 0 24 24" width="11" height="11" fill="none"><path d="M5 12l4 4 10-10" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="tt">Revisar evidências de competência</span><span class="from"><span class="ava p">CM</span> Carlos M.</span></div>
+            <div class="task"><span class="ck"></span><span class="tt">Levantar aspectos e impactos — setor pintura</span><span class="from"><span class="ava g">RL</span> R. Lima</span></div>
+            <div class="task"><span class="ck"></span><span class="tt">Definir indicadores de desempenho de SST</span><span class="from"><span class="ava a">JM</span> João M.</span></div>
+            <div class="task done"><span class="ck done"><svg viewBox="0 0 24 24" width="11" height="11" fill="none"><path d="M5 12l4 4 10-10" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="tt">Enviar política da qualidade ao cliente</span><span class="from"><span class="ava n">AS</span> Ana Souza</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="preview-flag">PREVIEW · direção <b>"Vesper"</b> (clean/denso) — não aplicado ao app</div>
+</body>
+</html>
