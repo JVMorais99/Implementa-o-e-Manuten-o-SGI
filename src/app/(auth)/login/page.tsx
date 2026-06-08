@@ -96,12 +96,6 @@ export default function LoginPage() {
         <SubmitButton />
       </form>
 
-      <p className="mt-5 text-center text-sm text-gray-500">
-        Não tem conta?{" "}
-        <Link href="/register" className="font-medium text-brand-600 hover:underline">
-          Criar conta
-        </Link>
-      </p>
       <p className="mt-2 text-center text-xs text-gray-400">
         Demo: consultor@iso.com / senha123
       </p>
