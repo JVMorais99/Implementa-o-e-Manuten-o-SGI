@@ -1,0 +1,13 @@
+.env
+.env.*
+!.env.example
+.git
+.claude
+.agents
+design-preview
+MDS
+storage/uploads
+prisma/dev.db
+prisma/dev.db-journal
+tsconfig.tsbuildinfo
+.next
