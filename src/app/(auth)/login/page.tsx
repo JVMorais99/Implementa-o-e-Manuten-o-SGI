@@ -21,13 +21,11 @@ function SubmitButton() {
 
 function StatusBanner() {
   const params = useSearchParams();
-  const message = params.get("registered")
-    ? "Conta criada com sucesso. Faça login para continuar."
-    : params.get("reset")
-      ? "Senha redefinida com sucesso. Faça login com a nova senha."
-      : params.get("invited")
-        ? "Convite aceito! Faça login para acessar."
-        : null;
+  const message = params.get("reset")
+    ? "Senha redefinida com sucesso. Faça login com a nova senha."
+    : params.get("invited")
+      ? "Convite aceito! Faça login para acessar."
+      : null;
   if (!message) return null;
   return (
     <div className="mb-4 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
