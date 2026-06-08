@@ -1,19 +1,19 @@
 // ISO Implementation Manager — schema Prisma
 //
-// Banco no dev: SQLite (roda sem setup). Para produção, trocar `provider` para
-// "postgresql" e ajustar DATABASE_URL. SQLite não suporta enum nem listas
-// escalares, por isso:
+// Banco: PostgreSQL (produção e dev). Por compatibilidade histórica com SQLite,
+// alguns campos seguem como String em vez de tipos nativos do Postgres:
 //   - campos de status são String (validados por unions TS/Zod em src/lib/enums.ts)
 //   - campos "lista" (ex.: applicableStandards) são String contendo JSON
-// Ao migrar para Postgres, esses campos podem virar enums nativos / String[].
+// Esses campos podem ser migrados para enums nativos / String[] no futuro.
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL") // conexão pooled (pgbouncer) usada em runtime
+  directUrl = env("DIRECT_URL") // conexão direta usada para migrações
 }
 
 model User {
