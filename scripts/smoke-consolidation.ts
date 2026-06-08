@@ -75,6 +75,29 @@ function main() {
   assert(joao.role === "CONSULTOR", "papel = maior privilégio entre os dups (CONSULTOR > AUDITOR)");
   assert(joao.clientIds.sort().join(",") === "c1,c2", "une os clientes dos dups");
 
+  // Desempate de org canônica: clientes iguais → vence a mais antiga.
+  const tie = pickCanonicalOrg([
+    { id: "novo", createdAt: d("2026-06-05"), clientCount: 3 },
+    { id: "velho", createdAt: d("2026-06-01"), clientCount: 3 },
+  ]);
+  assert(tie.id === "velho", "empate de clientes → org mais antiga vence");
+
+  // Sem dono nem fallback presentes → erro explícito (não deixa ninguém sem ADMIN).
+  let threw = false;
+  try {
+    planConsolidation({
+      ownerEmail: "ninguem@x.com",
+      fallbackOwnerEmail: "tambem-nao@x.com",
+      orgs: [{ id: "orgX", createdAt: d("2026-06-01"), clientCount: 1 }],
+      memberships: [
+        { id: "mx", userId: "uX", userEmail: "alguem@x.com", organizationId: "orgX", role: "CONSULTOR", createdAt: d("2026-06-01"), clientIds: [] },
+      ],
+    });
+  } catch {
+    threw = true;
+  }
+  assert(threw, "sem dono nem fallback → lança erro");
+
   console.log("OK smoke-consolidation: planejamento de consolidação ✔");
 }
 

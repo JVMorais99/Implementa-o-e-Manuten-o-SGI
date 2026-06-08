@@ -68,11 +68,19 @@ export function pickCanonicalOrg(orgs: OrgIn[]): OrgIn {
 export function planConsolidation(input: ConsolidationInput): ConsolidationPlan {
   const canonical = pickCanonicalOrg(input.orgs);
 
-  // Dono: preferimos ownerEmail; se não houver membership com esse e-mail, fallback.
+  // Dono: preferimos ownerEmail; se não houver membership com esse e-mail, o
+  // fallback; se nenhum dos dois existir, abortamos (senão ninguém viraria ADMIN).
   const emails = new Set(input.memberships.map((m) => m.userEmail));
   const ownerEmail = emails.has(input.ownerEmail)
     ? input.ownerEmail
-    : input.fallbackOwnerEmail;
+    : emails.has(input.fallbackOwnerEmail)
+      ? input.fallbackOwnerEmail
+      : null;
+  if (!ownerEmail) {
+    throw new Error(
+      `Nenhum dono encontrado (${input.ownerEmail} nem ${input.fallbackOwnerEmail}).`
+    );
+  }
 
   // Agrupa memberships por usuário (para deduplicar).
   const byUser = new Map<string, MembershipIn[]>();
@@ -102,7 +110,7 @@ export function planConsolidation(input: ConsolidationInput): ConsolidationPlan 
       ? "ADMIN"
       : sorted
           .map((m) => effective(m.role))
-          .sort((a, b) => ROLE_RANK[b] - ROLE_RANK[a])[0];
+          .sort((a, b) => (ROLE_RANK[b] ?? -1) - (ROLE_RANK[a] ?? -1))[0];
 
     const clientIds = isOwner
       ? [] // ADMIN enxerga todos os clientes da org; não precisa de vínculos
