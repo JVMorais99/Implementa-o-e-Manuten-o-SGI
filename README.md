@@ -11,10 +11,16 @@ evidências, gerando documentos, recebendo retornos e acompanhando o status.
 > e-mail transacional, storage em nuvem, notificações e **assistente de IA** (Fase 4).
 > Monetização/billing a definir com a equipe.
 
+> **Em produção:** publicado na **Vercel** em <https://sgi-neon.vercel.app> com banco
+> **PostgreSQL (Supabase)**. Deploy automático a cada push na branch `main`. Cadastro de
+> contas é **somente por convite do administrador** (área única compartilhada — ver
+> [Multiusuário e permissões](#multiusuário-e-permissões-rbac)).
+
 ## Stack
 
 - Next.js 15 (App Router) · React 19 · TypeScript
-- Prisma + SQLite (dev) — provider trocável para PostgreSQL em produção
+- Prisma + **PostgreSQL** (Supabase em produção; pooler transaction p/ runtime + direct p/ migrações)
+- Deploy na **Vercel** (auto-deploy via integração Git na branch `main`)
 - Tailwind CSS
 - NextAuth/Auth.js v5 (Credentials, JWT) · Zod
 - Multiusuário com **RBAC** (Organização + papéis)
@@ -23,14 +29,18 @@ evidências, gerando documentos, recebendo retornos e acompanhando o status.
 
 ## Como rodar
 
+Requer um **PostgreSQL** acessível (local ou hospedado). Copie `.env.example` para `.env`
+e preencha `DATABASE_URL` (pooled) e `DIRECT_URL` (direta, p/ migrações).
+
 ```bash
 npm install              # instala deps e gera o Prisma Client
-npm run db:migrate       # cria o banco SQLite (prisma/dev.db)
+npm run db:migrate       # aplica as migrações no Postgres
 npm run db:seed          # popula as 6 normas, templates, organização e usuário demo
 npm run dev              # http://localhost:3000
 ```
 
-**Usuário demo:** `consultor@iso.com` / `senha123`
+**Usuário demo / administrador:** `consultor@iso.com` / `senha123`
+(em produção é o **ADMIN único** da área — troque a senha).
 
 ## Fluxo principal
 
@@ -66,10 +76,10 @@ prisma/
   seed.ts                  usuário/organização demo + 6 normas + templates
   data/                    catálogos de requisitos (iso9001/14001/45001/27001/37001/37301)
                            e templates documentais
-  migrations/              init, document_versioning, audit_module, org_multiuser
+  migrations/              baseline Postgres (init) + posteriores
 src/
   auth.ts, auth.config.ts, middleware.ts   NextAuth v5 (Credentials, JWT)
-  app/(auth)/              login / cadastro (cria organização + ADMIN)
+  app/(auth)/              login (auto-cadastro desativado: /register redireciona p/ login)
   app/(dashboard)/         dashboard, clientes, projetos, auditorias, relatorios,
                            equipe, configuracoes
   app/api/                 auth, download/preview de evidência, export DOCX/PDF de
@@ -78,8 +88,8 @@ src/
   lib/                     prisma, enums, validators (Zod), permissions (RBAC), session
                            (getContext/clientWhere), progress, doc-generator, docx-export,
                            pdf-export, audit-report, evidence-preview, storage, utils
-scripts/                   smokes de verificação + migrações de dados
-                           (dedupe-requirements, backfill-organizations)
+scripts/                   smokes de verificação + migrações de dados (dedupe-requirements,
+                           backfill-organizations, consolidate-org[.run] = área única)
 storage/uploads/           arquivos de evidências (fora de /public, acesso controlado)
 ```
 
@@ -102,11 +112,11 @@ do projeto, com status, notas, percentual, evidências e documentos.
 
 ## Notas técnicas
 
-- **SQLite** não suporta `enum` nem listas escalares: os status são `String` validados
-  por unions TS/Zod (`src/lib/enums.ts`); campos "lista" (ex.: `applicableStandards`)
-  são `String` contendo JSON. Em produção (Postgres) podem virar enums nativos / `String[]`.
-- **Migração para PostgreSQL:** trocar `provider = "postgresql"` em `prisma/schema.prisma`,
-  ajustar `DATABASE_URL` no `.env` e rodar `npx prisma migrate dev`.
+- **Banco:** PostgreSQL. Por compatibilidade histórica com SQLite, os status seguem como
+  `String` validados por unions TS/Zod (`src/lib/enums.ts`) e campos "lista" (ex.:
+  `applicableStandards`) são `String` contendo JSON — podem virar enums nativos / `String[]`
+  no futuro. No serverless da Vercel use a conexão **pooled** (pgbouncer) em `DATABASE_URL`
+  e a **direta** em `DIRECT_URL` (migrações).
 - **Documentos:** templates ricos com placeholders (`{{cliente.nome}}`, `{{normas}}`,
   `{{requisito.codigo}}`...) preenchidos por `doc-generator.ts`; exportação **Word** por
   `docx-export.ts` e **PDF** por `pdf-export.ts` (layout próprio sobre `pdf-lib` — paginação,
@@ -124,28 +134,30 @@ desabilitada). Copie `.env.example` para `.env` e preencha o que for usar.
 
 | Variável | Função | Sem ela |
 |----------|--------|---------|
-| `DATABASE_URL` | Conexão do banco | (obrigatória) |
+| `DATABASE_URL` | Conexão do banco (pooled, runtime) | (obrigatória) |
+| `DIRECT_URL` | Conexão direta (migrações) | (obrigatória) |
 | `AUTH_SECRET` / `NEXTAUTH_SECRET` | Assinatura das sessões JWT | (obrigatória) |
 | `APP_URL` | Base pública para links de e-mail | usa `http://localhost:3000` |
 | `RESEND_API_KEY` + `EMAIL_FROM` | E-mail transacional (Resend) | links exibidos na tela |
 | `BLOB_READ_WRITE_TOKEN` | Storage em nuvem (Vercel Blob) | grava em `storage/uploads` |
 | `ANTHROPIC_API_KEY` (+ `AI_MODEL`) | Assistente de IA (Claude) | recursos de IA desligados |
 
-### Migrar para PostgreSQL
+### Deploy (Vercel + Supabase)
 
-No dev usamos SQLite (zero setup). Para produção:
+O projeto está publicado na **Vercel** com **PostgreSQL no Supabase**.
 
-1. Em `prisma/schema.prisma`, troque `provider = "sqlite"` por `provider = "postgresql"`.
-2. Em `prisma/migrations/migration_lock.toml`, troque `provider = "sqlite"` por `postgresql`.
-3. Aponte `DATABASE_URL` para o Postgres (ver `.env.example`).
-4. Gere o baseline e popule:
-   ```bash
-   rm -rf prisma/migrations/2026*           # baseline novo (dados de dev descartáveis)
-   npx prisma migrate dev --name init_postgres
-   npm run db:seed
-   ```
-   O schema é portável: status são `String` (validados em `src/lib/enums.ts`) e listas
-   são JSON-em-String — nada exclusivo de SQLite.
+- **Banco:** Supabase. Use o **pooler** para ambas as URLs (a conexão direta
+  `db.<ref>.supabase.co:5432` é IPv6-only e não funciona em Windows/Vercel):
+  `DATABASE_URL` = pooler *transaction* (porta 6543, `?pgbouncer=true&connection_limit=1`);
+  `DIRECT_URL` = pooler *session* (porta 5432).
+- **Vercel:** projeto vinculado ao repositório GitHub → **push em `main` dispara o deploy**.
+  Cadastre as variáveis em *Settings → Environment Variables* (o `.env` não vai para o git).
+  O `build` roda `prisma generate && prisma migrate deploy && next build`, então migrações
+  pendentes são aplicadas no deploy.
+- **Next.js:** a Vercel bloqueia versões vulneráveis — manter o Next atualizado (≥ 15.5.x).
+
+O schema é portável (status são `String` validados em `src/lib/enums.ts`; listas são
+JSON-em-String — nada exclusivo de um banco).
 
 ### Storage em nuvem
 
@@ -168,6 +180,7 @@ npx tsx scripts/smoke-email.ts       # tokens de auth (uso único) + mailer com 
 npx tsx scripts/smoke-storage.ts     # storage: roundtrip gravar/ler (Blob ou disco local)
 npx tsx scripts/smoke-notifications.ts # notificações derivadas (plano vencido detectado)
 npx tsx scripts/smoke-ai.ts          # IA: gated por ANTHROPIC_API_KEY (no-op controlado sem chave)
+npx tsx scripts/smoke-consolidation.ts # área única: planejador de consolidação de orgs (sem banco)
 npm run build                        # build de produção (tipos + rotas)
 npm run db:studio                    # inspecionar dados (Prisma Studio)
 ```
@@ -199,6 +212,11 @@ npm run db:studio                    # inspecionar dados (Prisma Studio)
   Vercel Blob (fallback em disco); **notificações** derivadas (prazos vencidos, documentos
   e constatações pendentes); base **pronta para PostgreSQL**. Ver "Produção e variáveis de
   ambiente".
+- **Fase 5 — Online (concluída):** migração para **PostgreSQL (Supabase)** e **deploy na
+  Vercel** (<https://sgi-neon.vercel.app>, auto-deploy via Git). **Área única compartilhada**:
+  auto-cadastro desativado (contas só por convite); todos na mesma organização com
+  visualização escopada por cliente; script idempotente de consolidação de organizações
+  (`scripts/consolidate-org`). Ver "Deploy" e "Multiusuário e permissões".
 
 ### Módulo de auditoria
 
@@ -215,10 +233,15 @@ conclusão. Páginas em `/auditorias`.
 
 ### Multiusuário e permissões (RBAC)
 
-Os dados são escopados por **Organização** (`Organization`): vários usuários colaboram na mesma
-consultoria via `Membership`, que define o **papel** de cada um. O escopo de acesso é centralizado
-em `clientWhere(ctx)` (`src/lib/session.ts`) — toda consulta a clientes/projetos/auditorias passa
-por ele; o cadastro cria a organização e o vínculo ADMIN automaticamente. Papéis e capacidades
+**Área única compartilhada com visualização por cliente.** Existe **uma** `Organization`:
+todos os usuários convivem nela, mas cada um só enxerga os **clientes aos quais está
+vinculado** (`MembershipClient` → `ctx.clientIds`). O **ADMIN** vê todos os clientes da
+organização (`clientIds = null`); os demais papéis veem apenas os seus (inclusive os totais
+do dashboard, que já são escopados). O escopo é centralizado em `clientWhere(ctx)`
+(`src/lib/session.ts`) — toda consulta a clientes/projetos/auditorias passa por ele.
+
+**Cadastro é só por convite:** o auto-cadastro foi desativado (`/register` redireciona para
+`/login`); não há mais criação de organizações novas a cada e-mail. Papéis e capacidades
 (`src/lib/permissions.ts`, `can(role, capability)`):
 
 | Papel | Capacidades |
@@ -230,7 +253,21 @@ por ele; o cadastro cria a organização e o vínculo ADMIN automaticamente. Pap
 | **Cliente (portal)** | restrito ao próprio cliente: lê documentos, envia evidências |
 
 As *server actions* validam a capacidade antes de gravar e a UI oculta o que o papel não permite.
-O **Administrador** convida membros em `/equipe` (papel interno ou Cliente vinculado a um cliente).
+O **Administrador** convida membros em `/equipe`, definindo o papel e os **clientes vinculados**
+(obrigatório ≥1 para papéis não-ADMIN). Um usuário sem vínculo entra na área mas não vê nenhum
+dado até ser vinculado.
+
+**Consolidação para área única** (`scripts/consolidate-org.ts` + `consolidate-org.run.ts`):
+migração de dados idempotente que unifica organizações pré-existentes numa só — elege a org
+canônica (mais clientes; desempate pela mais antiga), torna o dono o **ADMIN único**, rebaixa
+os demais ADMINs para LEITOR sem clientes, deduplica memberships e apaga orgs vazias. Roda em
+**dry-run por padrão**; aplica com `--apply`:
+
+```bash
+npx tsx scripts/consolidate-org.run.ts            # dry-run: imprime o plano, não grava
+npx tsx scripts/consolidate-org.run.ts --apply    # aplica numa transação
+```
+
 Projetos antigos foram normalizados para organizações com `scripts/backfill-organizations.ts`.
 
 ### Documentos integrados (SGI)
