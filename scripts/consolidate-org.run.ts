@@ -52,8 +52,12 @@ async function loadInput(): Promise<ConsolidationInput> {
   return { ownerEmail: OWNER_EMAIL, fallbackOwnerEmail: FALLBACK_OWNER_EMAIL, orgs, memberships };
 }
 
-function printPlan(input: ConsolidationInput, plan: ConsolidationPlan) {
-  console.log("=== PLANO DE CONSOLIDAÇÃO (dry-run) ===");
+function printPlan(
+  input: ConsolidationInput,
+  plan: ConsolidationPlan,
+  orphanClients: number
+) {
+  console.log("=== PLANO DE CONSOLIDAÇÃO ===");
   console.log(`Organizações: ${input.orgs.length} → 1`);
   console.log(`Org canônica: ${plan.canonicalOrgId}`);
   console.log(`ADMIN único (dono): ${plan.ownerEmail}`);
@@ -64,6 +68,11 @@ function printPlan(input: ConsolidationInput, plan: ConsolidationPlan) {
     console.log(`  - ${k.userEmail}: role=${k.role}, clientes=${k.clientIds.length}`);
   }
   console.log(`Orgs a remover: ${plan.deleteOrgIds.length} [${plan.deleteOrgIds.join(", ")}]`);
+  if (orphanClients > 0) {
+    console.log(
+      `⚠️  ${orphanClients} cliente(s) com organizationId nulo NÃO serão repontados — investigue antes do --apply.`
+    );
+  }
 }
 
 // Aplica o plano numa transação. Ordem respeita FKs e o unique (organizationId,userId):
@@ -106,7 +115,7 @@ async function apply(plan: ConsolidationPlan) {
     if (plan.deleteOrgIds.length) {
       await tx.organization.deleteMany({ where: { id: { in: plan.deleteOrgIds } } });
     }
-  });
+  }, { maxWait: 10000, timeout: 60000 });
 }
 
 async function main() {
@@ -122,7 +131,9 @@ async function main() {
   }
 
   const plan = planConsolidation(input);
-  printPlan(input, plan);
+  // Clientes sem organização não casam no repontar; avisamos para investigar antes.
+  const orphanClients = await prisma.client.count({ where: { organizationId: null } });
+  printPlan(input, plan, orphanClients);
 
   if (!doApply) {
     console.log("\n(dry-run) Nada foi gravado. Reexecute com --apply para aplicar.");
@@ -130,6 +141,12 @@ async function main() {
   }
 
   await apply(plan);
+
+  // Verificação pós-aplicação: deve restar exatamente uma organização.
+  const orgCount = await prisma.organization.count();
+  if (orgCount !== 1) {
+    throw new Error(`Esperava 1 organização após a consolidação, encontrei ${orgCount}.`);
+  }
   console.log("\n✅ Consolidação aplicada. Agora existe 1 organização compartilhada.");
 }
 
