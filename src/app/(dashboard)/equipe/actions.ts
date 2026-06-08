@@ -71,27 +71,48 @@ export async function inviteMember(
   const validated = await validateClientIds(ctx.orgId, data.role, data.clientIds);
   if ("error" in validated) return { error: validated.error };
 
-  const existing = await prisma.user.findUnique({ where: { email: data.email } });
-  if (existing) return { error: "Já existe um usuário com este e-mail." };
+  // Um usuário com este e-mail pode já existir mesmo após ter sido "removido":
+  // `removeMember` apaga apenas o Membership, preservando a conta (que pode ser
+  // autora de comentários/criadora de clientes). Por isso, em vez de bloquear pelo
+  // e-mail único, reanexamos uma conta existente que NÃO seja membro desta org.
+  const existing = await prisma.user.findUnique({
+    where: { email: data.email },
+    include: { memberships: { where: { organizationId: ctx.orgId } } },
+  });
+  if (existing && existing.memberships.length > 0) {
+    return { error: "Este usuário já é membro da organização." };
+  }
 
-  // Cria o usuário sem senha utilizável: ele a definirá ao aceitar o convite.
-  // O hash aleatório garante que não há login até o aceite.
-  const placeholderHash = await bcrypt.hash(randomBytes(24).toString("hex"), 10);
-  await prisma.user.create({
-    data: {
-      name: data.name,
-      email: data.email,
-      passwordHash: placeholderHash,
-      role: data.role === "CLIENTE" ? "CLIENTE" : "CONSULTOR",
-      memberships: {
-        create: {
-          organizationId: ctx.orgId,
-          role: data.role,
-          clients: { create: validated.ids.map((clientId) => ({ clientId })) },
+  if (existing) {
+    // Reanexa a conta órfã à organização (novo papel + clientes), sem recriar o User.
+    await prisma.membership.create({
+      data: {
+        userId: existing.id,
+        organizationId: ctx.orgId,
+        role: data.role,
+        clients: { create: validated.ids.map((clientId) => ({ clientId })) },
+      },
+    });
+  } else {
+    // Cria o usuário sem senha utilizável: ele a definirá ao aceitar o convite.
+    // O hash aleatório garante que não há login até o aceite.
+    const placeholderHash = await bcrypt.hash(randomBytes(24).toString("hex"), 10);
+    await prisma.user.create({
+      data: {
+        name: data.name,
+        email: data.email,
+        passwordHash: placeholderHash,
+        role: data.role === "CLIENTE" ? "CLIENTE" : "CONSULTOR",
+        memberships: {
+          create: {
+            organizationId: ctx.orgId,
+            role: data.role,
+            clients: { create: validated.ids.map((clientId) => ({ clientId })) },
+          },
         },
       },
-    },
-  });
+    });
+  }
 
   // Gera o convite (token INVITE) e envia o link por e-mail; sem e-mail
   // configurado, devolvemos o link para o admin compartilhar manualmente.
