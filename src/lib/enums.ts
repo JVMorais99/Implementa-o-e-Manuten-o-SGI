@@ -87,6 +87,29 @@ export const ORG_ROLE_COLORS: Record<OrgRole, string> = {
 // Papéis internos (não-cliente), usados ao convidar membros da equipe.
 export const TEAM_ROLES = ["ADMIN", "CONSULTOR", "AUDITOR", "LEITOR"] as const;
 
+// ---- Trilha de atividades (accountability) ----
+
+export const ACTIVITY_ACTIONS = [
+  "REQ_STATUS", // mudança de status / % de um requisito
+  "REQ_CONFORME", // requisito marcado como conforme
+  "DOC_GENERATED", // documento gerado
+  "DOC_SENT", // documento enviado ao cliente
+  "DOC_SIGNED", // recebimento assinado registrado
+  "DOC_APPROVED", // documento aprovado
+  "EVIDENCE_UPLOAD", // evidência anexada
+  "ACTION_CREATED", // plano de ação criado
+  "ACTION_DONE", // plano de ação concluído
+  "AUDIT_CREATED", // auditoria criada
+  "FINDING_CREATED", // constatação registrada
+  "MEMBER_INVITED", // membro convidado
+  "MEMBER_ROLE", // papel de membro alterado
+  "MEMBER_REMOVED", // membro removido
+  "CLIENT_CREATED", // cliente cadastrado
+  "PROJECT_CREATED", // projeto criado
+  "RESPONSIBLE_SET", // responsável atribuído a cliente/projeto
+] as const;
+export type ActivityAction = (typeof ACTIVITY_ACTIONS)[number];
+
 // ---- Auditoria ----
 
 export const AUDIT_TYPES = ["INTERNA", "EXTERNA"] as const;

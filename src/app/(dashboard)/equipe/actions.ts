@@ -7,10 +7,11 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { getContext } from "@/lib/session";
 import { can } from "@/lib/permissions";
-import { ORG_ROLES } from "@/lib/enums";
+import { ORG_ROLES, ORG_ROLE_LABELS, type OrgRole } from "@/lib/enums";
 import { createToken } from "@/lib/tokens";
 import { sendMail, emailLayout } from "@/lib/mailer";
 import { appUrl, emailEnabled } from "@/lib/features";
+import { logActivity } from "@/lib/activity";
 
 // `link` é preenchido quando o e-mail está desligado: o admin copia e repassa
 // o link de convite manualmente.
@@ -119,6 +120,13 @@ export async function inviteMember(
   const token = await createToken(data.email, "INVITE");
   const link = `${appUrl()}/aceitar-convite?token=${token}`;
 
+  await logActivity(ctx, {
+    action: "MEMBER_INVITED",
+    entityType: "member",
+    entityId: data.email,
+    summary: `Convidou ${data.name} como ${ORG_ROLE_LABELS[data.role as OrgRole]}`,
+  });
+
   revalidatePath("/equipe");
 
   if (!emailEnabled()) {
@@ -200,6 +208,7 @@ export async function updateMemberRole(
 
   const membership = await prisma.membership.findFirst({
     where: { id: membershipId, organizationId: ctx.orgId },
+    include: { user: { select: { name: true } } },
   });
   if (!membership || membership.userId === ctx.user.id) return; // não altera a si mesmo
   // CLIENTE depende de clientes vinculados; só trocamos entre papéis internos aqui.
@@ -209,6 +218,14 @@ export async function updateMemberRole(
     where: { id: membershipId },
     data: { role },
   });
+
+  await logActivity(ctx, {
+    action: "MEMBER_ROLE",
+    entityType: "member",
+    entityId: membership.userId,
+    summary: `Alterou o papel de ${membership.user.name} para ${ORG_ROLE_LABELS[role as OrgRole]}`,
+  });
+
   revalidatePath("/equipe");
 }
 
@@ -219,9 +236,19 @@ export async function removeMember(membershipId: string): Promise<void> {
 
   const membership = await prisma.membership.findFirst({
     where: { id: membershipId, organizationId: ctx.orgId },
+    include: { user: { select: { name: true } } },
   });
   if (!membership || membership.userId === ctx.user.id) return; // não remove a si mesmo
 
+  // Os clientes/projetos sob responsabilidade dele ficam sem responsável (SetNull).
   await prisma.membership.delete({ where: { id: membershipId } });
+
+  await logActivity(ctx, {
+    action: "MEMBER_REMOVED",
+    entityType: "member",
+    entityId: membership.userId,
+    summary: `Removeu ${membership.user.name} da organização`,
+  });
+
   revalidatePath("/equipe");
 }

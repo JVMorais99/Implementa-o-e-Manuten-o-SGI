@@ -12,7 +12,10 @@ export default async function ClientesPage() {
   const clients = await prisma.client.findMany({
     where: clientWhere(ctx),
     orderBy: { createdAt: "desc" },
-    include: { _count: { select: { projects: true } } },
+    include: {
+      _count: { select: { projects: true } },
+      responsibleMembership: { select: { user: { select: { name: true } } } },
+    },
   });
 
   return (
@@ -38,6 +41,7 @@ export default async function ClientesPage() {
           <Table>
             <THead>
               <Th>Cliente</Th>
+              <Th>Consultor responsável</Th>
               <Th>Segmento</Th>
               <Th align="center">Projetos</Th>
               <Th>CNPJ</Th>
@@ -49,6 +53,11 @@ export default async function ClientesPage() {
                     <Link href={`/clientes/${client.id}`} className="inline-block">
                       <AvatarCell name={client.name} />
                     </Link>
+                  </Td>
+                  <Td>
+                    {client.responsibleMembership?.user.name ?? (
+                      <span className="text-amber-600">Sem responsável</span>
+                    )}
                   </Td>
                   <Td>{client.segment || "—"}</Td>
                   <Td align="center" className="font-semibold text-gray-700">

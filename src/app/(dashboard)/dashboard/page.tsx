@@ -7,9 +7,12 @@ import { StatCard, ProgressBar } from "@/components/ui/StatCard";
 import { ButtonLink } from "@/components/ui/Button";
 import { StatusDonut } from "@/components/dashboard/StatusDonut";
 import { ActionPlanStatusBadge, ActionPlanPriorityBadge } from "@/components/ui/Badge";
+import { TableCard } from "@/components/ui/Table";
+import { ActivityFeed } from "@/components/activity/ActivityFeed";
 import { projectProgress, statusDistribution } from "@/lib/progress";
 import { formatDate, initials } from "@/lib/utils";
 import { recordDailySnapshot, getKpiDeltas, type KpiKey } from "@/lib/metrics";
+import { getRecentActivity } from "@/lib/activity";
 
 export default async function DashboardPage() {
   const ctx = await getContext();
@@ -66,6 +69,8 @@ export default async function DashboardPage() {
         );
 
   const firstName = ctx.user.name?.trim().split(/\s+/)[0] ?? "Usuário";
+
+  const activity = await getRecentActivity(ctx, { limit: 10 });
 
   // Grava o snapshot do dia (histórico) e calcula os deltas mês-a-mês. As pills só
   // aparecem na visão da organização inteira (ADMIN: clientIds === null), pois o
@@ -192,6 +197,17 @@ export default async function DashboardPage() {
               )}
             </Card>
           </div>
+        </div>
+      )}
+
+      {activity.length > 0 && (
+        <div className="mt-6">
+          <TableCard
+            title="Atividades recentes"
+            subtitle="O que a equipe fez nos seus clientes"
+          >
+            <ActivityFeed entries={activity} />
+          </TableCard>
         </div>
       )}
     </div>

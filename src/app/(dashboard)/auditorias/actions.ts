@@ -6,6 +6,8 @@ import { prisma } from "@/lib/prisma";
 import { getContext, clientWhere, type AccessContext } from "@/lib/session";
 import { can } from "@/lib/permissions";
 import { auditSchema, auditItemUpdateSchema, findingSchema } from "@/lib/validators";
+import { logActivity } from "@/lib/activity";
+import { FINDING_TYPE_LABELS, type FindingType } from "@/lib/enums";
 
 export type AuditFormState = { error?: string; ok?: boolean } | undefined;
 
@@ -13,7 +15,7 @@ export type AuditFormState = { error?: string; ok?: boolean } | undefined;
 async function loadOwnedAudit(auditId: string, ctx: AccessContext) {
   return prisma.audit.findFirst({
     where: { id: auditId, project: { client: clientWhere(ctx) } },
-    select: { id: true, projectId: true },
+    select: { id: true, projectId: true, project: { select: { clientId: true } } },
   });
 }
 
@@ -77,6 +79,15 @@ export async function createAudit(
         })),
       },
     },
+  });
+
+  await logActivity(ctx, {
+    action: "AUDIT_CREATED",
+    entityType: "audit",
+    entityId: audit.id,
+    clientId: project.clientId,
+    projectId: project.id,
+    summary: `Criou a auditoria "${data.title}"`,
   });
 
   revalidatePath("/auditorias");
@@ -210,7 +221,7 @@ export async function createFinding(
     if (!pr) d.projectRequirementId = undefined;
   }
 
-  await prisma.auditFinding.create({
+  const finding = await prisma.auditFinding.create({
     data: {
       auditId,
       type: d.type,
@@ -225,6 +236,17 @@ export async function createFinding(
       dueDate: toDate(d.dueDate),
       status: d.status,
     },
+  });
+
+  await logActivity(ctx, {
+    action: "FINDING_CREATED",
+    entityType: "finding",
+    entityId: finding.id,
+    clientId: owned.project.clientId,
+    projectId: owned.projectId,
+    summary: `Registrou constatação (${
+      FINDING_TYPE_LABELS[d.type as FindingType]
+    })${requirementCode ? ` no requisito ${requirementCode}` : ""}`,
   });
 
   revalidatePath(`/auditorias/${auditId}`);

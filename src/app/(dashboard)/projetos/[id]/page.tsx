@@ -15,6 +15,8 @@ import { PROJECT_STATUS_LABELS, type ProjectStatus } from "@/lib/enums";
 import { formatDate, compareReqCodes } from "@/lib/utils";
 import { projectProgress, statusDistribution } from "@/lib/progress";
 import { deleteProject } from "../actions";
+import { setProjectResponsible } from "../../clientes/actions";
+import { ResponsibleSelect } from "@/components/team/ResponsibleSelect";
 
 export default async function ProjetoTrilhaPage({
   params,
@@ -25,11 +27,13 @@ export default async function ProjetoTrilhaPage({
   const ctx = await getContext();
   const canProjects = can(ctx.role, "manage_projects");
   const canAudits = can(ctx.role, "manage_audits");
+  const canMembers = can(ctx.role, "manage_members");
 
   const project = await prisma.isoProject.findFirst({
     where: { id, client: clientWhere(ctx) },
     include: {
       client: true,
+      responsibleMembership: { select: { id: true, user: { select: { name: true } } } },
       standards: { include: { standard: true } },
       requirements: {
         include: {
@@ -70,6 +74,14 @@ export default async function ProjetoTrilhaPage({
   const dist = statusDistribution(reqs);
   const norms = standardOrder.join(", ");
   const boundDelete = deleteProject.bind(null, id);
+
+  const members = canMembers
+    ? await prisma.membership.findMany({
+        where: { organizationId: ctx.orgId ?? "__none__", role: { not: "CLIENTE" } },
+        orderBy: { createdAt: "asc" },
+        select: { id: true, user: { select: { name: true } } },
+      })
+    : [];
 
   return (
     <div>
@@ -125,6 +137,25 @@ export default async function ProjetoTrilhaPage({
             <div>
               <p className="text-xs uppercase tracking-wide text-gray-400">Prazo</p>
               <p className="text-sm text-gray-700">{formatDate(project.dueDate)}</p>
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-wide text-gray-400">
+                Consultor responsável
+              </p>
+              {canMembers ? (
+                <div className="mt-1">
+                  <ResponsibleSelect
+                    key={project.responsibleMembershipId ?? "none"}
+                    action={setProjectResponsible.bind(null, id)}
+                    members={members.map((m) => ({ id: m.id, name: m.user.name }))}
+                    current={project.responsibleMembershipId}
+                  />
+                </div>
+              ) : (
+                <p className="text-sm text-gray-700">
+                  {project.responsibleMembership?.user.name ?? "—"}
+                </p>
+              )}
             </div>
           </div>
           <div className="mt-5">

@@ -11,8 +11,9 @@ import { DeleteButton } from "@/components/ui/DeleteButton";
 import { ProgressBar } from "@/components/ui/StatCard";
 import { PROJECT_STATUS_LABELS, type ProjectStatus } from "@/lib/enums";
 import { formatDate } from "@/lib/utils";
-import { deleteClient } from "../actions";
+import { deleteClient, setClientResponsible } from "../actions";
 import { projectProgress } from "@/lib/progress";
+import { ResponsibleSelect } from "@/components/team/ResponsibleSelect";
 
 function Info({ label, value }: { label: string; value?: string | null }) {
   return (
@@ -32,9 +33,11 @@ export default async function ClienteDetailPage({
   const ctx = await getContext();
   const canClients = can(ctx.role, "manage_clients");
   const canProjects = can(ctx.role, "manage_projects");
+  const canMembers = can(ctx.role, "manage_members");
   const client = await prisma.client.findFirst({
     where: { id, ...clientWhere(ctx) },
     include: {
+      responsibleMembership: { select: { id: true, user: { select: { name: true } } } },
       projects: {
         orderBy: { createdAt: "desc" },
         include: {
@@ -45,6 +48,15 @@ export default async function ClienteDetailPage({
     },
   });
   if (!client) notFound();
+
+  // Supervisor (ADMIN) pode atribuir o consultor responsável (define o acesso).
+  const members = canMembers
+    ? await prisma.membership.findMany({
+        where: { organizationId: ctx.orgId ?? "__none__", role: { not: "CLIENTE" } },
+        orderBy: { createdAt: "asc" },
+        select: { id: true, user: { select: { name: true } } },
+      })
+    : [];
 
   const boundDelete = deleteClient.bind(null, id);
 
@@ -83,12 +95,34 @@ export default async function ClienteDetailPage({
           <div className="grid grid-cols-2 gap-4">
             <Info label="CNPJ" value={client.cnpj} />
             <Info label="Unidade" value={client.unit} />
-            <Info label="Responsável" value={client.responsible} />
+            <Info label="Contato (cliente)" value={client.responsible} />
             <Info label="Contato" value={client.contact} />
             <Info label="Segmento" value={client.segment} />
           </div>
           <div className="mt-4">
             <Info label="Escopo" value={client.scope} />
+          </div>
+          <div className="mt-4 border-t border-gray-100 pt-4">
+            <p className="text-xs uppercase tracking-wide text-gray-400">
+              Consultor responsável
+            </p>
+            {canMembers ? (
+              <div className="mt-1.5">
+                <ResponsibleSelect
+                  key={client.responsibleMembershipId ?? "none"}
+                  action={setClientResponsible.bind(null, id)}
+                  members={members.map((m) => ({ id: m.id, name: m.user.name }))}
+                  current={client.responsibleMembershipId}
+                />
+                <p className="mt-1 text-xs text-gray-400">
+                  Define quem responde pelo cliente e concede o acesso.
+                </p>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-700">
+                {client.responsibleMembership?.user.name ?? "—"}
+              </p>
+            )}
           </div>
           {client.notes && (
             <div className="mt-4">

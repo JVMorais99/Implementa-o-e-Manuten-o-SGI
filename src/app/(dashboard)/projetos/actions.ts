@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { getContext, clientWhere, requireCapability } from "@/lib/session";
 import { ForbiddenError, can } from "@/lib/permissions";
 import { projectSchema } from "@/lib/validators";
+import { logActivity } from "@/lib/activity";
 
 export type FormState = { error?: string } | undefined;
 
@@ -39,6 +40,7 @@ export async function createProject(
   // Garante que o cliente pertence à organização do usuário.
   const client = await prisma.client.findFirst({
     where: { id: data.clientId, ...clientWhere(ctx) },
+    select: { id: true, name: true, responsibleMembershipId: true },
   });
   if (!client) return { error: "Cliente inválido" };
 
@@ -81,6 +83,8 @@ export async function createProject(
       startDate: data.startDate ? new Date(data.startDate) : null,
       dueDate: data.dueDate ? new Date(data.dueDate) : null,
       responsible: data.responsible ?? null,
+      // herda o consultor responsável do cliente (pode ser reatribuído depois)
+      responsibleMembershipId: client.responsibleMembershipId,
       status: data.status,
       notes: data.notes ?? null,
       standards: {
@@ -94,6 +98,15 @@ export async function createProject(
         })),
       },
     },
+  });
+
+  await logActivity(ctx, {
+    action: "PROJECT_CREATED",
+    entityType: "project",
+    entityId: project.id,
+    clientId: client.id,
+    projectId: project.id,
+    summary: `Criou o projeto "${project.type}" para ${client.name}`,
   });
 
   revalidatePath("/projetos");

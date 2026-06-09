@@ -54,9 +54,32 @@ model Organization {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  members   Membership[]
-  clients   Client[]
-  snapshots MetricSnapshot[]
+  members      Membership[]
+  clients      Client[]
+  snapshots    MetricSnapshot[]
+  activityLogs ActivityLog[]
+}
+
+// Trilha de auditoria de ações dos usuários (accountability). Registra quem fez o
+// quê e quando, com escopo opcional por cliente/projeto (filtrável por clientWhere).
+// Append-only; gravado de forma best-effort pelas server actions (ver src/lib/activity.ts).
+model ActivityLog {
+  id             String   @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  actorId        String? // usuário que realizou a ação (null = sistema)
+  actorName      String? // snapshot do nome para exibição estável
+  action         String // ACTIVITY_ACTIONS (src/lib/enums.ts)
+  entityType     String // ex.: "requirement", "document", "client", "member"
+  entityId       String
+  clientId       String? // escopo p/ clientWhere (visão do supervisor)
+  projectId      String?
+  summary        String // texto PT-BR pronto para exibir no feed
+  createdAt      DateTime @default(now())
+
+  @@index([organizationId, createdAt])
+  @@index([actorId])
+  @@index([clientId])
 }
 
 // Snapshot diário dos KPIs do dashboard, por organização. Append-only (1 linha por
@@ -93,6 +116,10 @@ model Membership {
   createdAt      DateTime @default(now())
 
   clients MembershipClient[]
+  // Responsabilidade efetiva (não confundir com `clients`, que é só visibilidade):
+  // ser responsável por um cliente concede o acesso (sincronizado em setClientResponsible).
+  responsibleClients  Client[]     @relation("ClientResponsible")
+  responsibleProjects IsoProject[] @relation("ProjectResponsible")
 
   @@unique([organizationId, userId])
   @@index([userId])
@@ -127,6 +154,11 @@ model Client {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   organizationId String?
   organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  // Consultor responsável (do nosso lado). Define o acesso: ao designar, o membership
+  // ganha o vínculo MembershipClient. NÃO confundir com `responsible` (texto livre =
+  // contato do lado do cliente). SetNull ao remover o membro — exige reatribuição.
+  responsibleMembershipId String?
+  responsibleMembership   Membership? @relation("ClientResponsible", fields: [responsibleMembershipId], references: [id], onDelete: SetNull)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -136,6 +168,7 @@ model Client {
 
   @@index([userId])
   @@index([organizationId])
+  @@index([responsibleMembershipId])
 }
 
 model IsoStandard {
@@ -174,7 +207,11 @@ model IsoProject {
   type        String   // ex.: "Implantação ISO 9001"
   startDate   DateTime?
   dueDate     DateTime?
-  responsible String?
+  responsible String?  // texto livre (legado)
+  // Consultor responsável pelo projeto (accountability/exibição). Não altera acesso —
+  // este já vem do cliente. Vazio = herda o responsável do cliente.
+  responsibleMembershipId String?
+  responsibleMembership   Membership? @relation("ProjectResponsible", fields: [responsibleMembershipId], references: [id], onDelete: SetNull)
   status      String   @default("EM_ANDAMENTO")
   notes       String?
   createdAt   DateTime @default(now())
@@ -185,6 +222,7 @@ model IsoProject {
   audits       Audit[]
 
   @@index([clientId])
+  @@index([responsibleMembershipId])
 }
 
 model ProjectStandard {

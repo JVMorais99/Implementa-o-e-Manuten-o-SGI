@@ -14,7 +14,9 @@ import { parseJsonArray, mergeUnique } from "@/lib/utils";
 import {
   STATUS_COMPLETION_PERCENT,
   type ProjectRequirementStatus,
+  type ActivityAction,
 } from "@/lib/enums";
+import { logActivity } from "@/lib/activity";
 import type { ActionState } from "./actions";
 
 async function loadOwnedRequirement(prId: string, ctx: AccessContext) {
@@ -115,6 +117,15 @@ export async function generateDocumentForRequirement(
     });
   }
 
+  await logActivity(ctx, {
+    action: "DOC_GENERATED",
+    entityType: "document",
+    entityId: doc.id,
+    clientId: pr.project.clientId,
+    projectId: pr.projectId,
+    summary: `Gerou o documento "${title}" (req. ${pr.requirement.code})`,
+  });
+
   revalidatePath(`/projetos/${pr.projectId}/requisitos/${prId}`);
   redirect(`/projetos/${pr.projectId}/requisitos/${prId}/documentos/${doc.id}`);
 }
@@ -192,6 +203,15 @@ export async function generateGenericForRequirement(prId: string): Promise<void>
       data: { status: "GERADO_SISTEMA", completionPercent: 35 },
     });
   }
+
+  await logActivity(ctx, {
+    action: "DOC_GENERATED",
+    entityType: "document",
+    entityId: doc.id,
+    clientId: pr.project.clientId,
+    projectId: pr.projectId,
+    summary: `Gerou o documento "${title}" (req. ${pr.requirement.code})`,
+  });
 
   revalidatePath(`/projetos/${pr.projectId}/requisitos/${prId}`);
   redirect(`/projetos/${pr.projectId}/requisitos/${prId}/documentos/${doc.id}`);
@@ -322,6 +342,9 @@ type LifecycleStep = {
   stamp?: "sentToClientAt" | "signedReceivedAt";
   // Status mínimo do requisito após o evento (só avança se aumentar o progresso).
   requirementStatus?: ProjectRequirementStatus;
+  // Atividade registrada na trilha (accountability).
+  logAction: ActivityAction;
+  logSummary: string;
 };
 
 async function advanceDocumentLifecycle(docId: string, step: LifecycleStep) {
@@ -334,7 +357,13 @@ async function advanceDocumentLifecycle(docId: string, step: LifecycleStep) {
     },
     include: {
       projectRequirement: {
-        select: { id: true, projectId: true, status: true, completionPercent: true },
+        select: {
+          id: true,
+          projectId: true,
+          status: true,
+          completionPercent: true,
+          project: { select: { clientId: true } },
+        },
       },
     },
   });
@@ -374,6 +403,15 @@ async function advanceDocumentLifecycle(docId: string, step: LifecycleStep) {
     }
   }
 
+  await logActivity(ctx, {
+    action: step.logAction,
+    entityType: "document",
+    entityId: docId,
+    clientId: pr.project.clientId,
+    projectId: pr.projectId,
+    summary: `${step.logSummary}: "${doc.title}"`,
+  });
+
   revalidatePath(
     `/projetos/${pr.projectId}/requisitos/${pr.id}/documentos/${docId}`
   );
@@ -387,6 +425,8 @@ export async function sendDocumentToClient(docId: string): Promise<void> {
     changeNote: "Documento enviado ao cliente",
     stamp: "sentToClientAt",
     requirementStatus: "ENVIADO_CLIENTE",
+    logAction: "DOC_SENT",
+    logSummary: "Enviou documento ao cliente",
   });
 }
 
@@ -397,6 +437,8 @@ export async function registerSignedReceipt(docId: string): Promise<void> {
     changeNote: "Documento recebido assinado pelo cliente",
     stamp: "signedReceivedAt",
     requirementStatus: "RECEBIDO_CLIENTE",
+    logAction: "DOC_SIGNED",
+    logSummary: "Registrou recebimento assinado",
   });
 }
 
@@ -405,6 +447,8 @@ export async function approveDocument(docId: string): Promise<void> {
   await advanceDocumentLifecycle(docId, {
     docStatus: "APROVADO",
     changeNote: "Documento aprovado",
+    logAction: "DOC_APPROVED",
+    logSummary: "Aprovou documento",
   });
 }
 
