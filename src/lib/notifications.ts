@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { clientWhere, type AccessContext } from "@/lib/session";
+import { getMaintenanceReminders } from "@/lib/certifications";
 
 // Notificações derivadas (calculadas em tempo real, sem tabela própria): pendências
 // com prazo estourado ou etapas paradas, escopadas pelos clientes visíveis ao
@@ -9,7 +10,9 @@ export type NotificationKind =
   | "ACTION_OVERDUE"
   | "DOC_AWAITING_SIGNATURE"
   | "DOC_AWAITING_APPROVAL"
-  | "FINDING_OVERDUE";
+  | "FINDING_OVERDUE"
+  | "CERT_EXPIRING"
+  | "SURVEILLANCE_DUE";
 
 export type NotificationSeverity = "high" | "medium" | "low";
 
@@ -87,10 +90,22 @@ export async function getNotifications(
     }),
   ]);
 
+  // Lembretes de manutenção (recertificação / vigilância) derivados das certificações.
+  const maintenance = await getMaintenanceReminders(ctx);
+
   const reqHref = (pr: { projectId: string; id: string }) =>
     `/projetos/${pr.projectId}/requisitos/${pr.id}`;
 
   const notifications: AppNotification[] = [
+    ...maintenance.map((m) => ({
+      id: m.id,
+      kind: (m.kind === "RECERT" ? "CERT_EXPIRING" : "SURVEILLANCE_DUE") as NotificationKind,
+      severity: m.severity,
+      title: m.title,
+      description: m.description,
+      href: m.href,
+      date: m.date,
+    })),
     ...overdueActions.map((a) => ({
       id: `action-${a.id}`,
       kind: "ACTION_OVERDUE" as const,

@@ -162,13 +162,42 @@ model Client {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  projects      IsoProject[]
-  portalMembers Membership[] @relation("ClientPortalMembers")
-  memberLinks   MembershipClient[]
+  projects       IsoProject[]
+  portalMembers  Membership[] @relation("ClientPortalMembers")
+  memberLinks    MembershipClient[]
+  certifications Certification[]
 
   @@index([userId])
   @@index([organizationId])
   @@index([responsibleMembershipId])
+}
+
+// Certificação ISO ativa de um cliente em uma norma. Sustenta a fase de MANUTENÇÃO
+// do SGI: guarda emissão/validade, o intervalo do ciclo de auditorias de manutenção
+// (vigilância) e a última vigilância realizada — alimentando os lembretes derivados
+// de recertificação/vigilância (src/lib/certifications.ts), sem tabela de lembretes.
+model Certification {
+  id             String      @id @default(cuid())
+  clientId       String
+  client         Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  standardId     String
+  standard       IsoStandard @relation(fields: [standardId], references: [id])
+  certifyingBody String? // organismo certificador
+  certificateNo  String? // número do certificado
+  scope          String? // escopo certificado
+  issuedAt       DateTime // emissão / certificação inicial
+  expiresAt      DateTime // validade (gatilho da recertificação)
+  // Intervalo do ciclo de auditorias de manutenção, em meses (0 = sem vigilância).
+  surveillanceIntervalMonths Int      @default(12)
+  lastSurveillanceAt         DateTime? // última auditoria de manutenção realizada
+  status         String      @default("ATIVA") // ATIVA | EM_RECERTIFICACAO | SUSPENSA | VENCIDA | CANCELADA
+  notes          String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  @@index([clientId])
+  @@index([standardId])
+  @@index([expiresAt])
 }
 
 model IsoStandard {
@@ -180,6 +209,7 @@ model IsoStandard {
   requirements        IsoRequirement[]
   projectStandards    ProjectStandard[]
   projectRequirements ProjectRequirement[]
+  certifications      Certification[]
 }
 
 model IsoRequirement {

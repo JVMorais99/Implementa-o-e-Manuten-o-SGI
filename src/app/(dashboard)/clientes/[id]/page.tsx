@@ -9,10 +9,16 @@ import { TableCard, Table, THead, Th, Tr, Td } from "@/components/ui/Table";
 import { ButtonLink } from "@/components/ui/Button";
 import { DeleteButton } from "@/components/ui/DeleteButton";
 import { ProgressBar } from "@/components/ui/StatCard";
-import { PROJECT_STATUS_LABELS, type ProjectStatus } from "@/lib/enums";
+import {
+  PROJECT_STATUS_LABELS,
+  type ProjectStatus,
+  CERTIFICATION_STATUS_LABELS,
+  CERTIFICATION_STATUS_COLORS,
+} from "@/lib/enums";
 import { formatDate } from "@/lib/utils";
 import { deleteClient, setClientResponsible } from "../actions";
 import { projectProgress } from "@/lib/progress";
+import { effectiveStatus, daysUntil } from "@/lib/certifications";
 import { ResponsibleSelect } from "@/components/team/ResponsibleSelect";
 
 function Info({ label, value }: { label: string; value?: string | null }) {
@@ -44,6 +50,10 @@ export default async function ClienteDetailPage({
           standards: { include: { standard: true } },
           requirements: { select: { status: true } },
         },
+      },
+      certifications: {
+        orderBy: { expiresAt: "asc" },
+        include: { standard: { select: { code: true } } },
       },
     },
   });
@@ -205,6 +215,77 @@ export default async function ClienteDetailPage({
               </Table>
             </TableCard>
           )}
+
+          <div className="mt-6">
+            <TableCard
+              title="Certificações"
+              subtitle="Validade, vigilância e recertificação (fase de manutenção)"
+              action={
+                canClients ? (
+                  <ButtonLink
+                    href={`/manutencao/nova?clientId=${id}`}
+                    variant="secondary"
+                  >
+                    + Certificação
+                  </ButtonLink>
+                ) : undefined
+              }
+            >
+              {client.certifications.length === 0 ? (
+                <p className="px-5 py-6 text-center text-sm text-gray-400">
+                  Nenhuma certificação registrada.
+                </p>
+              ) : (
+                <Table>
+                  <THead>
+                    <Th>Norma</Th>
+                    <Th>Organismo</Th>
+                    <Th>Validade</Th>
+                    <Th>Status</Th>
+                  </THead>
+                  <tbody>
+                    {client.certifications.map((c) => {
+                      const status = effectiveStatus(c);
+                      const days = daysUntil(c.expiresAt);
+                      return (
+                        <Tr key={c.id}>
+                          <Td className="py-3">
+                            <Link
+                              href={`/manutencao/${c.id}/editar`}
+                              className="font-semibold text-gray-800 hover:text-brand-600"
+                            >
+                              {c.standard.code}
+                            </Link>
+                          </Td>
+                          <Td className="text-gray-500">{c.certifyingBody || "—"}</Td>
+                          <Td className="whitespace-nowrap">
+                            <span
+                              className={
+                                days < 0
+                                  ? "font-semibold text-rose-600"
+                                  : days <= 120
+                                    ? "font-medium text-amber-600"
+                                    : "text-gray-500"
+                              }
+                            >
+                              {formatDate(c.expiresAt)}
+                            </span>
+                          </Td>
+                          <Td>
+                            <span
+                              className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${CERTIFICATION_STATUS_COLORS[status]}`}
+                            >
+                              {CERTIFICATION_STATUS_LABELS[status]}
+                            </span>
+                          </Td>
+                        </Tr>
+                      );
+                    })}
+                  </tbody>
+                </Table>
+              )}
+            </TableCard>
+          </div>
         </div>
       </div>
     </div>

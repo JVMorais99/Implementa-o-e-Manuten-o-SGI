@@ -21,6 +21,7 @@ const SECTIONS: NavSection[] = [
     label: "Geral",
     items: [
       { href: "/dashboard", label: "Dashboard", icon: IconDashboard, roles: ["ADMIN", "CONSULTOR", "AUDITOR", "LEITOR", "CLIENTE"] },
+      { href: "/meu-trabalho", label: "Meu trabalho", icon: IconMyWork, roles: ["ADMIN", "CONSULTOR", "AUDITOR", "LEITOR"] },
       { href: "/clientes", label: "Clientes", icon: IconClients, roles: ["ADMIN", "CONSULTOR", "AUDITOR", "LEITOR"] },
       { href: "/projetos", label: "Projetos", icon: IconProjects, roles: ["ADMIN", "CONSULTOR", "AUDITOR", "LEITOR", "CLIENTE"] },
       { href: "/notificacoes", label: "Notificações", icon: IconBell, roles: ["ADMIN", "CONSULTOR", "AUDITOR", "LEITOR", "CLIENTE"] },
@@ -30,6 +31,7 @@ const SECTIONS: NavSection[] = [
     label: "Módulos",
     items: [
       { href: "/auditorias", label: "Auditorias", icon: IconAudits, roles: ["ADMIN", "CONSULTOR", "AUDITOR", "LEITOR"] },
+      { href: "/manutencao", label: "Manutenção", icon: IconMaintenance, roles: ["ADMIN", "CONSULTOR", "AUDITOR", "LEITOR"] },
       { href: "/relatorios", label: "Relatórios", icon: IconReports, roles: ["ADMIN", "CONSULTOR", "AUDITOR", "LEITOR"] },
     ],
   },
@@ -117,6 +119,15 @@ function IconDashboard({ className }: { className?: string }) {
     </svg>
   );
 }
+function IconMyWork({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className}>
+      <path d="M9 11l2 2 4-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <rect x="4" y="5" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M9 3h6v3a1 1 0 01-1 1h-4a1 1 0 01-1-1V3z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+    </svg>
+  );
+}
 function IconClients({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={className}>
@@ -147,6 +158,14 @@ function IconTeam({ className }: { className?: string }) {
       <circle cx="8" cy="9" r="2.5" stroke="currentColor" strokeWidth="1.6" />
       <circle cx="16" cy="9" r="2.5" stroke="currentColor" strokeWidth="1.6" />
       <path d="M3.5 19a4.5 4.5 0 019 0M11.5 19a4.5 4.5 0 019 0" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+function IconMaintenance({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className}>
+      <path d="M12 3l7 2.5V11c0 4.5-3 7.7-7 9-4-1.3-7-4.5-7-9V5.5L12 3z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+      <path d="M9 11.5l2 2 4-4.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }

@@ -57,6 +57,15 @@ export type ActionPlanStatus = (typeof ACTION_PLAN_STATUSES)[number];
 export const ACTION_PLAN_PRIORITIES = ["BAIXA", "MEDIA", "ALTA", "CRITICA"] as const;
 export type ActionPlanPriority = (typeof ACTION_PLAN_PRIORITIES)[number];
 
+export const CERTIFICATION_STATUSES = [
+  "ATIVA",
+  "EM_RECERTIFICACAO",
+  "SUSPENSA",
+  "VENCIDA",
+  "CANCELADA",
+] as const;
+export type CertificationStatus = (typeof CERTIFICATION_STATUSES)[number];
+
 // ---- Organização / papéis (RBAC) ----
 
 export const ORG_ROLES = [
@@ -107,6 +116,8 @@ export const ACTIVITY_ACTIONS = [
   "CLIENT_CREATED", // cliente cadastrado
   "PROJECT_CREATED", // projeto criado
   "RESPONSIBLE_SET", // responsável atribuído a cliente/projeto
+  "CERT_RECORDED", // certificação registrada/atualizada
+  "SURVEILLANCE_DONE", // auditoria de manutenção (vigilância) registrada
 ] as const;
 export type ActivityAction = (typeof ACTIVITY_ACTIONS)[number];
 
@@ -213,6 +224,14 @@ export const ACTION_PLAN_PRIORITY_LABELS: Record<ActionPlanPriority, string> = {
   CRITICA: "Crítica",
 };
 
+export const CERTIFICATION_STATUS_LABELS: Record<CertificationStatus, string> = {
+  ATIVA: "Ativa",
+  EM_RECERTIFICACAO: "Em recertificação",
+  SUSPENSA: "Suspensa",
+  VENCIDA: "Vencida",
+  CANCELADA: "Cancelada",
+};
+
 export const AUDIT_TYPE_LABELS: Record<AuditType, string> = {
   INTERNA: "Auditoria interna",
   EXTERNA: "Auditoria externa",
@@ -302,6 +321,14 @@ export const ACTION_PLAN_PRIORITY_COLORS: Record<ActionPlanPriority, string> = {
   MEDIA: "bg-sky-100 text-sky-700",
   ALTA: "bg-orange-100 text-orange-700",
   CRITICA: "bg-red-100 text-red-700",
+};
+
+export const CERTIFICATION_STATUS_COLORS: Record<CertificationStatus, string> = {
+  ATIVA: "bg-emerald-100 text-emerald-700",
+  EM_RECERTIFICACAO: "bg-amber-100 text-amber-700",
+  SUSPENSA: "bg-orange-100 text-orange-700",
+  VENCIDA: "bg-red-100 text-red-700",
+  CANCELADA: "bg-slate-100 text-slate-500",
 };
 
 export const AUDIT_TYPE_COLORS: Record<AuditType, string> = {

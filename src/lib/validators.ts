@@ -10,6 +10,7 @@ import {
   AUDIT_ITEM_RESULTS,
   FINDING_TYPES,
   FINDING_STATUSES,
+  CERTIFICATION_STATUSES,
 } from "./enums";
 
 const optionalString = z
@@ -110,6 +111,32 @@ export const auditItemUpdateSchema = z.object({
   notes: optionalString,
   evidenceSampled: optionalString,
 });
+
+// ---- Certificação / manutenção ----
+
+export const certificationSchema = z
+  .object({
+    clientId: z.string().min(1, "Selecione o cliente"),
+    standardId: z.string().min(1, "Selecione a norma"),
+    certifyingBody: optionalString,
+    certificateNo: optionalString,
+    scope: optionalString,
+    issuedAt: z.string().trim().min(1, "Informe a data de emissão"),
+    expiresAt: z.string().trim().min(1, "Informe a validade"),
+    surveillanceIntervalMonths: z.coerce
+      .number()
+      .int()
+      .min(0, "Intervalo inválido")
+      .max(60, "Intervalo máximo de 60 meses")
+      .default(12),
+    status: z.enum(CERTIFICATION_STATUSES).default("ATIVA"),
+    notes: optionalString,
+  })
+  .refine((d) => new Date(d.expiresAt) > new Date(d.issuedAt), {
+    message: "A validade deve ser posterior à emissão",
+    path: ["expiresAt"],
+  });
+export type CertificationInput = z.infer<typeof certificationSchema>;
 
 export const findingSchema = z.object({
   type: z.enum(FINDING_TYPES),
