@@ -22,11 +22,14 @@ export interface AccessContext {
   clientIds: string[] | null;
 }
 
-// Contexto de acesso do usuário: organização ativa, papel e o conjunto de clientes
-// atrelados (escopo de dados). ADMIN vê todos os clientes da organização (clientIds
-// = null); os demais papéis só veem os clientes vinculados ao seu membership.
-export async function getContext(): Promise<AccessContext> {
-  const user = await requireUser();
+// Resolve o contexto de acesso de um usuário (papel + escopo de clientes) a partir do
+// seu membership mais antigo. Separado de getContext para ser reutilizável fora de uma
+// requisição autenticada (ex.: o cron de digest itera vários usuários).
+export async function buildUserContext(user: {
+  id: string;
+  name?: string | null;
+  email?: string | null;
+}): Promise<AccessContext> {
   const membership = await prisma.membership.findFirst({
     where: { userId: user.id },
     orderBy: { createdAt: "asc" },
@@ -39,6 +42,14 @@ export async function getContext(): Promise<AccessContext> {
     role,
     clientIds: role === "ADMIN" ? null : (membership?.clients.map((c) => c.clientId) ?? []),
   };
+}
+
+// Contexto de acesso do usuário logado: organização ativa, papel e o conjunto de
+// clientes atrelados (escopo de dados). ADMIN vê todos os clientes da organização
+// (clientIds = null); os demais papéis só veem os clientes vinculados ao membership.
+export async function getContext(): Promise<AccessContext> {
+  const user = await requireUser();
+  return buildUserContext(user);
 }
 
 // Filtro Prisma de acesso a clientes: restringe à organização e ao conjunto de

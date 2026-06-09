@@ -141,6 +141,7 @@ desabilitada). Copie `.env.example` para `.env` e preencha o que for usar.
 | `RESEND_API_KEY` + `EMAIL_FROM` | E-mail transacional (Resend) | links exibidos na tela |
 | `BLOB_READ_WRITE_TOKEN` | Storage em nuvem (Vercel Blob) | grava em `storage/uploads` |
 | `ANTHROPIC_API_KEY` (+ `AI_MODEL`) | Assistente de IA (Claude) | recursos de IA desligados |
+| `CRON_SECRET` | Protege o cron `/api/cron/digest` (digest de pendências) | cron sem envio (e-mail desligado) |
 
 ### Deploy (Vercel + Supabase)
 
@@ -158,6 +159,16 @@ O projeto está publicado na **Vercel** com **PostgreSQL no Supabase**.
 
 O schema é portável (status são `String` validados em `src/lib/enums.ts`; listas são
 JSON-em-String — nada exclusivo de um banco).
+
+### Avisos proativos (cron + digest por e-mail)
+
+`vercel.json` agenda um **cron diário** (`0 11 * * *`) que chama `GET /api/cron/digest`.
+A rota calcula as pendências não lidas de cada consultor e envia um **digest por e-mail**
+(via Resend). As notificações têm estado **lido/não-lido** persistido por usuário
+(`NotificationRead`); o sino conta só as não lidas e a página `/notificacoes` permite
+marcá-las como lidas. Sem `RESEND_API_KEY`/`EMAIL_FROM`, o cron roda mas não envia.
+Defina `CRON_SECRET` na Vercel: ela injeta `Authorization: Bearer <CRON_SECRET>` nas
+chamadas agendadas, e a rota recusa requisições sem esse header quando o segredo existe.
 
 ### Storage em nuvem
 

@@ -23,12 +23,30 @@ model User {
   passwordHash  String
   role          String    @default("CONSULTOR") // papel global legado; o papel efetivo vem de Membership
   emailVerified DateTime? // carimbo de verificação de e-mail (null = não verificado)
+  lastDigestAt  DateTime? // último digest de pendências enviado por e-mail (cron)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  clients     Client[]
-  comments    RequirementComment[]
-  memberships Membership[]
+  clients           Client[]
+  comments          RequirementComment[]
+  memberships       Membership[]
+  notificationReads NotificationRead[]
+}
+
+// Estado de leitura (lido/não-lido) das notificações derivadas, por usuário. As
+// notificações em si continuam calculadas em tempo real (src/lib/notifications.ts);
+// aqui guardamos apenas a chave determinística (AppNotification.id) marcada como
+// lida — o sino conta as NÃO lidas. Linhas órfãs (notificação que deixou de existir)
+// são inofensivas.
+model NotificationRead {
+  id     String   @id @default(cuid())
+  userId String
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  key    String // id determinístico da notificação (AppNotification.id)
+  readAt DateTime @default(now())
+
+  @@unique([userId, key])
+  @@index([userId])
 }
 
 // Token de uso único para fluxos de autenticação por e-mail: convite de membro,

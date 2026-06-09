@@ -24,6 +24,7 @@ export interface AppNotification {
   description: string;
   href: string;
   date: Date | null;
+  read: boolean;
 }
 
 // Dias que um documento pode ficar enviado sem retorno antes de virar alerta.
@@ -96,7 +97,7 @@ export async function getNotifications(
   const reqHref = (pr: { projectId: string; id: string }) =>
     `/projetos/${pr.projectId}/requisitos/${pr.id}`;
 
-  const notifications: AppNotification[] = [
+  const raw: Omit<AppNotification, "read">[] = [
     ...maintenance.map((m) => ({
       id: m.id,
       kind: (m.kind === "RECERT" ? "CERT_EXPIRING" : "SURVEILLANCE_DUE") as NotificationKind,
@@ -144,14 +145,53 @@ export async function getNotifications(
     })),
   ];
 
-  // Mais severos primeiro; dentro do mesmo nível, mais antigos primeiro.
+  // Estado lido/não-lido (persistido por usuário): marca as notificações cuja chave
+  // o usuário já leu (src/lib/notifications: NotificationRead).
+  const readRows = await prisma.notificationRead.findMany({
+    where: { userId: ctx.user.id, key: { in: raw.map((n) => n.id) } },
+    select: { key: true },
+  });
+  const readKeys = new Set(readRows.map((r) => r.key));
+  const notifications: AppNotification[] = raw.map((n) => ({
+    ...n,
+    read: readKeys.has(n.id),
+  }));
+
+  // Não lidas primeiro; depois mais severas; dentro do mesmo nível, mais antigas.
   const rank: Record<NotificationSeverity, number> = { high: 0, medium: 1, low: 2 };
   return notifications.sort((a, b) => {
+    if (a.read !== b.read) return a.read ? 1 : -1;
     if (rank[a.severity] !== rank[b.severity]) return rank[a.severity] - rank[b.severity];
     return (a.date?.getTime() ?? 0) - (b.date?.getTime() ?? 0);
   });
 }
 
+// O sino conta apenas as NÃO lidas.
 export async function getNotificationCount(ctx: AccessContext): Promise<number> {
-  return (await getNotifications(ctx)).length;
+  return (await getNotifications(ctx)).filter((n) => !n.read).length;
+}
+
+// Marca um conjunto de chaves de notificação como lidas para o usuário (idempotente).
+export async function markNotificationsRead(
+  userId: string,
+  keys: string[]
+): Promise<void> {
+  if (keys.length === 0) return;
+  await prisma.$transaction(
+    keys.map((key) =>
+      prisma.notificationRead.upsert({
+        where: { userId_key: { userId, key } },
+        create: { userId, key },
+        update: {},
+      })
+    )
+  );
+}
+
+// Marca todas as notificações atuais do usuário como lidas.
+export async function markAllNotificationsRead(ctx: AccessContext): Promise<number> {
+  const notifications = await getNotifications(ctx);
+  const unreadKeys = notifications.filter((n) => !n.read).map((n) => n.id);
+  await markNotificationsRead(ctx.user.id, unreadKeys);
+  return unreadKeys.length;
 }
